@@ -1,19 +1,15 @@
-import sys
 import pygame as pg
-import pygame.display as disp
-import pygame.event as pgevent
 import pygame.gfxdraw as gfx
-import pygame.time as pgtime
 import pygame.sprite as sp
 import pygame.surfarray as sfa
 import pygame.transform as tf
 import pygame.freetype as pgfont
 import numpy as np
 from random import *
-import math
 MAX_PLAYERS, MIN_PLAYERS = 3, 2
 
-class Menu():
+
+class Menu:
 
     pgfont.init()
     LABELFONT = pgfont.SysFont('Tahoma', 16)
@@ -30,90 +26,91 @@ class Menu():
         self.textBoxActive = None
         self.bg = pg.Surface((w, h))
         self.bg.fill((0, 0, 0))
-        
 
-    def starBG(self):
-        self.bg = self.genStarBG(self.w, self.h)
+    def star_bg(self):
+        self.bg = self.gen_star_bg(self.w, self.h)
 
-    def genStarBG(self, w, h, stars=None, starRMin=3, starRMax=20, starRVar=0.5):
+    def gen_star_bg(self, w, h, stars=None, star_min=3, star_max=20, star_var=0.5):
         if stars is None:
             stars = int(w * h / 10 ** 4)
-        MARGIN = 5
+        margin = 5
         bg = pg.Surface((w, h))
         for s in range(stars):
-            x = randint(MARGIN, w - MARGIN)
-            y = randint(MARGIN, h - MARGIN)
-            r = int(starRMin + expovariate(starRVar))
-            if r > starRMax: r = starRMax
-            bg.blit(self.whiteStar(r), (x, y))
+            x = randint(margin, w - margin)
+            y = randint(margin, h - margin)
+            r = int(star_min + expovariate(star_var))
+            if r > star_max:
+                r = star_max
+            bg.blit(self.white_star(r), (x, y))
         return bg
 
-    def whiteStar(self, r):
+    def white_star(self, r):
         a = np.full((3, 3, 3), 0, dtype=int)
         a[1][1] = (255, 255, 255)
         return tf.smoothscale(sfa.make_surface(a), (r, r))
 
-
-    def addButton(self, *args):
+    def add_button(self, *args):
         self.buttons.add(Button(*args))
 
-    def addTextBox(self, name, *args, **kwargs):
-        newBox = TextBox(*args, **kwargs)
-        self.textBoxDict[name] = newBox
-        self.buttons.add(newBox)
+    def add_text_box(self, name, *args, **kwargs):
+        new_box = TextBox(*args, **kwargs)
+        self.textBoxDict[name] = new_box
+        self.buttons.add(new_box)
 
-    def getTextBox(self, name):
+    def get_text_box(self, name):
         return self.textBoxDict[name].text
 
-    def addLabel(self, text, x, y, font=None, anchor=None):
-        if font is None: font = Menu.LABELFONT
-        textImage, rt = font.render(text, Menu.FONTCOLOR)
+    def add_label(self, text, x, y, font=None, anchor=None):
+        if font is None:
+            font = Menu.LABELFONT
+        text_image, rt = font.render(text, Menu.FONTCOLOR)
         if anchor == 'N':
-            topLeft = x - rt.width // 2, y
+            top_left = x - rt.width // 2, y
         elif anchor == 'W':
-            topLeft = x ,y - rt.height // 2
+            top_left = x, y - rt.height // 2
         elif anchor == 'NW':
-            topLeft = x, y
-        else: # default to center
-            topLeft = (x - rt.width // 2,
-                       y - rt.height // 2)
-        self.bg.blit(textImage, topLeft)
+            top_left = x, y
+        else:  # default to center
+            top_left = (x - rt.width // 2, y - rt.height // 2)
+        self.bg.blit(text_image, top_left)
 
-    def addImage(self, img, loc, dims=None):
+    def add_image(self, img, loc, dims=None):
         if dims is None:
             self.bg.blit(img, loc)
         else:
             dims = tuple(map(int, dims))
             self.bg.blit(tf.scale(img, dims), loc)
 
-    def addMultilineLabel(self, *args, **kwargs):
-        mlLabel = MultilineLabel(*args, **kwargs)
-        self.bg.blit(mlLabel.image, mlLabel.rect)
+    def add_multiline_label(self, *args, **kwargs):
+        ml_label = MultilineLabel(*args, **kwargs)
+        self.bg.blit(ml_label.image, ml_label.rect)
 
-    def addStatusBox(self, name, *args, **kwargs):
-        newBox = StatusBox(*args, **kwargs)
-        self.statusBoxDict[name] = newBox
-        self.statusBoxes.add(newBox)
+    def add_status_box(self, name, *args, **kwargs):
+        new_box = StatusBox(*args, **kwargs)
+        self.statusBoxDict[name] = new_box
+        self.statusBoxes.add(new_box)
 
-    def updateStatusBox(self, name, *args, **kwargs):
-        self.statusBoxDict[name].updateText(*args, **kwargs)
+    def update_status_box(self, name, *args, **kwargs):
+        self.statusBoxDict[name].update_text(*args, **kwargs)
 
-    def timerFired(self):
+    def timer_fired(self):
         pass
 
-    def mouseMove(self, event):
-        if self.pressed: return
+    def mouse_move(self, event):
+        if self.pressed: 
+            return
         for but in self.buttons:
-            if but.containsPt(event.pos):
-                but.mouseOver()
+            if but.contains_pt(event.pos):
+                but.mouse_over()
             else:
-                but.unMouseOver()
+                but.un_mouse_over()
 
-    def mouseDown(self, event):
-        if self.textBoxActive: self.textBoxActive.deactivate()
+    def mouse_down(self, event):
+        if self.textBoxActive: 
+            self.textBoxActive.deactivate()
         if event.button == 1:
             for but in self.buttons:
-                if but.containsPt(event.pos):
+                if but.contains_pt(event.pos):
                     if isinstance(but, Button):
                         self.pressed = but
                         but.press()
@@ -121,28 +118,29 @@ class Menu():
                         self.textBoxActive = but
                         but.activate()
 
-    def mouseUp(self, event):
+    def mouse_up(self, event):
         if self.pressed:
-            if self.pressed.containsPt(event.pos):
+            if self.pressed.contains_pt(event.pos):
                 self.pressed.release()
             else:
                 self.pressed.unpress()
                 self.pressed = None
 
-    def keyPressed(self, event):
+    def key_pressed(self, event):
         if self.textBoxActive:
-            if event.key == 8: # backspace
-                self.textBoxActive.removeText()
+            if event.key == 8:  # backspace
+                self.textBoxActive.remove_text()
             elif event.key == 13:
-                self.textBoxActive.enterFn()
+                self.textBoxActive.enter_fn()
             else:
-                self.textBoxActive.addText(event.unicode)
+                self.textBoxActive.add_text(event.unicode)
 
     def redraw(self, screen):
         self.statusBoxes.clear(screen, self.bg)
         rects = self.buttons.draw(screen)
         rects += self.statusBoxes.draw(screen)
         return rects
+
 
 class Button(sp.DirtySprite):
 
@@ -168,26 +166,26 @@ class Button(sp.DirtySprite):
         self.pressed = False
 
     def __createImages__(self):
-        textImage, r  = Button.FONT.render(self.text, Button.COLOR)
-        textTopLeft = ((self.rect.width - textImage.get_width()) // 2,
-                       (self.rect.height - textImage.get_height()) // 2)
-        imgRect = self.image.get_rect()
-        gfx.rectangle(self.imageBase, imgRect, Button.COLOR)
-        self.imageBase.blit(textImage, textTopLeft)
+        text_image, r = Button.FONT.render(self.text, Button.COLOR)
+        text_top_left = ((self.rect.width - text_image.get_width()) // 2, 
+                         (self.rect.height - text_image.get_height()) // 2)
+        img_rect = self.image.get_rect()
+        gfx.rectangle(self.imageBase, img_rect, Button.COLOR)
+        self.imageBase.blit(text_image, text_top_left)
         self.imageMouseOver.fill(Button.COLORO)
-        gfx.rectangle(self.imageMouseOver, imgRect, Button.COLOR)
-        self.imageMouseOver.blit(textImage, textTopLeft)
+        gfx.rectangle(self.imageMouseOver, img_rect, Button.COLOR)
+        self.imageMouseOver.blit(text_image, text_top_left)
         self.imageMousePress.fill(Button.COLORP)
-        gfx.rectangle(self.imageMousePress, imgRect, Button.COLOR)
-        self.imageMousePress.blit(textImage, textTopLeft)
+        gfx.rectangle(self.imageMousePress, img_rect, Button.COLOR)
+        self.imageMousePress.blit(text_image, text_top_left)
 
-    def containsPt(self, pt):
+    def contains_pt(self, pt):
         return self.rect.collidepoint(pt)
 
-    def mouseOver(self):
+    def mouse_over(self):
         self.image = self.imageMouseOver
 
-    def unMouseOver(self):
+    def un_mouse_over(self):
         self.image = self.imageBase
 
     def press(self):
@@ -200,7 +198,8 @@ class Button(sp.DirtySprite):
 
     def release(self):
         self.image = self.imageBase
-        if self.pressed: self.fn(*self.args)
+        if self.pressed: 
+            self.fn(*self.args)
 
 
 class TextBox(sp.DirtySprite):
@@ -212,11 +211,11 @@ class TextBox(sp.DirtySprite):
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 20)
 
-    def __init__(self, rect, enterFn=lambda x: None, defaultText=""):
+    def __init__(self, rect, enter_fn=lambda x: None, default_text=""):
         super().__init__()
-        self.text = defaultText
+        self.text = default_text
         self.rect = rect
-        self.enterFn = enterFn
+        self.enterFn = enter_fn
         self.imageBase = pg.Surface((rect.width, rect.height))
         self.imageMouseOver = pg.Surface((rect.width, rect.height))
         self.imageMousePress = pg.Surface((rect.width, rect.height))
@@ -231,44 +230,46 @@ class TextBox(sp.DirtySprite):
         self.imageMouseOver.fill(TextBox.COLORO)
         gfx.rectangle(self.imageMouseOver, self.imgRect, TextBox.COLOR)
         if self.text:
-            staticTextImage, r = TextBox.FONT.render(self.text, TextBox.COLOR)
-            self.imageBase.blit(staticTextImage, self.textTopLeft)
-            self.imageMouseOver.blit(staticTextImage, self.textTopLeft)
+            static_text_image, r = TextBox.FONT.render(self.text, TextBox.COLOR)
+            self.imageBase.blit(static_text_image, self.textTopLeft)
+            self.imageMouseOver.blit(static_text_image, self.textTopLeft)
 
     def __typingImages__(self):
         self.imageMousePress.fill((0, 0, 0))
         gfx.rectangle(self.imageMousePress, self.imgRect, TextBox.COLORP)
         if self.text:
-            textImage, r = TextBox.FONT.render(self.text, TextBox.COLORP)
-            self.textTopLeft = ((self.rect.width - textImage.get_width()) // 2,
-                           (self.rect.height - textImage.get_height()) // 2)
-            self.imageMousePress.blit(textImage, self.textTopLeft)
+            text_image, r = TextBox.FONT.render(self.text, TextBox.COLORP)
+            self.textTopLeft = ((self.rect.width - text_image.get_width()) // 2, (self.rect.height - 
+                                                                                  text_image.get_height()) // 2)
+            self.imageMousePress.blit(text_image, self.textTopLeft)
         self.image = self.imageMousePress
 
-    def containsPt(self, pt):
+    def contains_pt(self, pt):
         return self.rect.collidepoint(pt)
 
-    def mouseOver(self):
-        if not self.active: self.image = self.imageMouseOver
+    def mouse_over(self):
+        if not self.active: 
+            self.image = self.imageMouseOver
 
-    def unMouseOver(self):
-        if not self.active: self.image = self.imageBase
+    def un_mouse_over(self):
+        if not self.active: 
+            self.image = self.imageBase
 
     def activate(self):
         self.__typingImages__()
         self.image = self.imageMousePress
         self.active = True
 
-    def addText(self, c):
+    def add_text(self, c):
         self.text += c
         self.__typingImages__()
 
-    def removeText(self):
+    def remove_text(self):
         if len(self.text) > 0:
             self.text = self.text[:-1]
             self.__typingImages__()
 
-    def clearText(self):
+    def clear_text(self):
         self.text = ""
         self.__typingImages__()
 
@@ -277,44 +278,48 @@ class TextBox(sp.DirtySprite):
         self.image = self.imageBase
         self.active = False
 
+
 class StatusBox(sp.DirtySprite):
 
     COLOR = (0, 255, 0)
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 16)
 
-    def __init__(self, text, x, y, anchor=None, font=None, textColor=None):
+    def __init__(self, text, x, y, anchor=None, font=None, text_color=None):
         super().__init__()
         self.text = text
         self.x, self.y = x, y
         self.anchor = anchor
-        if font is None: self.font = StatusBox.FONT
-        else: self.font = font
-        if textColor is None: self.textColor = StatusBox.COLOR
-        else: self.textColor = textColor
+        if font is None: 
+            self.font = StatusBox.FONT
+        else: 
+            self.font = font
+        if text_color is None: 
+            self.textColor = StatusBox.COLOR
+        else: 
+            self.textColor = text_color
         self.__createImage__()
 
     def __createImage__(self):
         self.image, r = self.font.render(self.text, self.textColor)
         if self.anchor == 'N':
-            topLeft = self.x - self.image.get_width() // 2, self.y
+            top_left = self.x - self.image.get_width() // 2, self.y
         elif self.anchor == 'W':
-            topLeft = self.x , self.y - self.image.get_height() // 2
+            top_left = self.x, self.y - self.image.get_height() // 2
         elif self.anchor == 'NW':
-            topLeft = self.x, self.y
-        else: # default to center
-            topLeft = (self.x - self.image.get_width() // 2,
-                       self.y - self.image.get_height() // 2)
-        self.rect = pg.Rect(*topLeft, self.image.get_width(),
-                            self.image.get_height())
+            top_left = self.x, self.y
+        else:  # default to center
+            top_left = (self.x - self.image.get_width() // 2, self.y - self.image.get_height() // 2)
+        self.rect = pg.Rect(*top_left, self.image.get_width(), self.image.get_height())
 
-    def updateText(self, text=None, color=None):
+    def update_text(self, text=None, color=None):
         if text is not None:
             self.text = text
         if color is not None:
             self.textColor = color
         if not (color is None and text is None):
             self.__createImage__()
+
 
 class MultilineLabel(sp.Sprite):
 
@@ -324,49 +329,50 @@ class MultilineLabel(sp.Sprite):
     PARA_MARGIN = 15
     LINE_MARGIN = 5
 
-    def __init__(self, text, x, y, maxW):
+    def __init__(self, text, x, y, max_w):
         super().__init__()
         self.text = text
         self.x, self.y = x, y
-        self.maxW = maxW
+        self.maxW = max_w
         self.__createImage__()
 
     def __createImage__(self):
-        paraList = []
+        para_list = []
         self.h = 0
         for paragraph in self.text.splitlines():
             sf, h = self.__createParagraphImage__(paragraph)
-            paraList.append((sf, h))
+            para_list.append((sf, h))
             self.h += h + MultilineLabel.PARA_MARGIN
         self.image = pg.Surface((self.maxW, self.h))
-        currY = 0
-        for sf, h in paraList:
-            self.image.blit(sf, (0, currY))
-            currY += h + MultilineLabel.PARA_MARGIN
+        curr_y = 0
+        for sf, h in para_list:
+            self.image.blit(sf, (0, curr_y))
+            curr_y += h + MultilineLabel.PARA_MARGIN
 
     def __createParagraphImage__(self, text):
-        wordList = text.split()
-        lineList = []
-        lineSfList = []
+        word_list = text.split()
+        line_list = []
+        line_sf_list = []
         h = 0
-        nextLine = wordList.pop(0)
-        while nextLine:
-            currLine, nextLine = nextLine, ""
-            while MultilineLabel.FONT.get_rect(currLine).width < self.maxW:
-                if not wordList: break
-                currLine += " " + wordList.pop(0)
+        next_line = word_list.pop(0)
+        while next_line:
+            curr_line, next_line = next_line, ""
+            while MultilineLabel.FONT.get_rect(curr_line).width < self.maxW:
+                if not word_list:
+                    break
+                curr_line += " " + word_list.pop(0)
             else:
-                currLine, nextLine = currLine.rsplit(" ", 1)
-            lineList.append(currLine)
-        for l in lineList:
+                curr_line, next_line = curr_line.rsplit(" ", 1)
+            line_list.append(curr_line)
+        for l in line_list:
             sf, r = MultilineLabel.FONT.render(l, MultilineLabel.COLOR)
-            lineSfList.append((sf, r))
+            line_sf_list.append((sf, r))
             h += r.height + MultilineLabel.LINE_MARGIN
         image = pg.Surface((self.maxW, h))
-        currY = 0
-        for sf, r in lineSfList:
-            image.blit(sf, (0, currY))
-            currY += r.height + MultilineLabel.LINE_MARGIN
+        curr_y = 0
+        for sf, r in line_sf_list:
+            image.blit(sf, (0, curr_y))
+            curr_y += r.height + MultilineLabel.LINE_MARGIN
         return image, h
 
     @property
@@ -374,21 +380,19 @@ class MultilineLabel(sp.Sprite):
         return pg.Rect(self.x, self.y, self.maxW, self.h)
 
 
-
 class SettingsMenu(Menu):
-    def __init__(self, w, h, user, mainMenu):
+    def __init__(self, w, h, user, main_menu):
         super().__init__(w, h)
-        self.starBG()
-        self.mainMenu = mainMenu
-        butW = 300
-        self.addLabel("Change Name:", w // 2, 230)
-        self.addTextBox("Name", pg.Rect((w - butW) // 2, 250, butW, 70), defaultText=user.name)
-        self.addLabel("Change Color:" ,w // 2, 350)
-        self.addTextBox("Color", pg.Rect((w - butW) // 2, 370, butW, 70))
-        self.addStatusBox("status", "", w // 2, 480)
-        self.addButton("SAVE", pg.Rect((w - butW) // 2, 500, butW, 50), self.validate)
-        self.addButton("BACK", pg.Rect((w - butW) // 2, 560, butW, 50), mainMenu)
-
+        self.star_bg()
+        self.mainMenu = main_menu
+        but_w = 300
+        self.add_label("Change Name:", w // 2, 230)
+        self.add_text_box("Name", pg.Rect((w - but_w) // 2, 250, but_w, 70), default_text=user.name)
+        self.add_label("Change Color:", w // 2, 350)
+        self.add_text_box("Color", pg.Rect((w - but_w) // 2, 370, but_w, 70))
+        self.add_status_box("status", "", w // 2, 480)
+        self.add_button("SAVE", pg.Rect((w - but_w) // 2, 500, but_w, 50), self.validate)
+        self.add_button("BACK", pg.Rect((w - but_w) // 2, 560, but_w, 50), main_menu)
 
     def validate(self):
         #Check values
@@ -397,19 +401,18 @@ class SettingsMenu(Menu):
 
 class StartMPMenu(Menu):
 
-    def __init__(self, w, h, preGameMenu, mainMenu):
+    def __init__(self, w, h, pre_game_menu, main_menu):
         super().__init__(w, h)
-        self.starBG()
-        self.preGameMenu = preGameMenu
-        butW = 300
-        self.addLabel("Enter room name:", w // 2, 230)
-        self.addTextBox("room", pg.Rect((w - butW) // 2, 250, butW, 70))
-        self.addLabel("Number of players (%d-%d):" % (MIN_PLAYERS, MAX_PLAYERS),
-                      w // 2, 350)
-        self.addTextBox("players", pg.Rect((w - butW) // 2, 370, butW, 70))
-        self.addStatusBox("status", "", w // 2, 480)
-        self.addButton("START", pg.Rect((w - butW) // 2, 500, butW, 50), self.validate)
-        self.addButton("BACK", pg.Rect((w - butW) // 2, 560, butW, 50), mainMenu)
+        self.star_bg()
+        self.preGameMenu = pre_game_menu
+        but_w = 300
+        self.add_label("Enter room name:", w // 2, 230)
+        self.add_text_box("room", pg.Rect((w - but_w) // 2, 250, but_w, 70))
+        self.add_label("Number of players (%d-%d):" % (MIN_PLAYERS, MAX_PLAYERS), w // 2, 350)
+        self.add_text_box("players", pg.Rect((w - but_w) // 2, 370, but_w, 70))
+        self.add_status_box("status", "", w // 2, 480)
+        self.add_button("START", pg.Rect((w - but_w) // 2, 500, but_w, 50), self.validate)
+        self.add_button("BACK", pg.Rect((w - but_w) // 2, 560, but_w, 50), main_menu)
         self.numPlayers = 2
 
     def validate(self):
@@ -417,36 +420,28 @@ class StartMPMenu(Menu):
         self.preGameMenu()
 
 
-
 class JoinMPMenu(Menu):
 
-    def __init__(self, w, h, mainMenu):
+    def __init__(self, w, h, main_menu):
         super().__init__(w, h)
-        self.starBG()
-        butW = 300
-        self.addLabel("Enter the name of room to connect to:", w // 2, 225)
-        self.addTextBox("room", pg.Rect((w - butW) // 2, 250, butW, 100),
-                        self.connectToServer)
-        self.addStatusBox("status", "", w // 2, 400)
-        self.addButton("CONNECT AND START", pg.Rect((w - butW) // 2,
-                                                    440, butW, 50),
-                       self.connectToServer)
-        self.addButton("BACK", pg.Rect((w - butW) // 2, 500, butW, 50),
-                       mainMenu)
+        self.star_bg()
+        but_w = 300
+        self.add_label("Enter the name of room to connect to:", w // 2, 225)
+        self.add_text_box("room", pg.Rect((w - but_w) // 2, 250, but_w, 100), self.connect_to_server)
+        self.add_status_box("status", "", w // 2, 400)
+        self.add_button("CONNECT AND START", pg.Rect((w - but_w) // 2, 440, but_w, 50), self.connect_to_server)
+        self.add_button("BACK", pg.Rect((w - but_w) // 2, 500, but_w, 50), main_menu)
 
-    def connectToServer(self):
-        self.updateStatusBox("status", "Trying to connect...")
-
+    def connect_to_server(self):
+        self.update_status_box("status", "Trying to connect...")
 
 
 class PreGameMenu(Menu):
 
     def __init__(self, w, h):
         super().__init__(w, h)
-        self.addStatusBox("status", "", w // 2, 400)
+        self.add_status_box("status", "", w // 2, 400)
         self.start()
 
-
     def start(self):
-        self.updateStatusBox("status", "Waiting for other players...")
-
+        self.update_status_box("status", "Waiting for other players...")
