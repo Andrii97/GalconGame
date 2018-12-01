@@ -388,7 +388,7 @@ class SettingsMenu(Menu):
         self.addStatusBox("status", "", w // 2, 480)
         self.addButton("SAVE", pg.Rect((w - butW) // 2, 500, butW, 50), self.validate)
         self.addButton("BACK", pg.Rect((w - butW) // 2, 560, butW, 50), mainMenu)
-        
+
 
     def validate(self):
         #Check values
@@ -402,8 +402,8 @@ class StartMPMenu(Menu):
         self.starBG()
         self.preGameMenu = preGameMenu
         butW = 300
-        self.addLabel("Enter your own IP address:", w // 2, 230)
-        self.addTextBox("IP", pg.Rect((w - butW) // 2, 250, butW, 70))
+        self.addLabel("Enter room name:", w // 2, 230)
+        self.addTextBox("room", pg.Rect((w - butW) // 2, 250, butW, 70))
         self.addLabel("Number of players (%d-%d):" % (MIN_PLAYERS, MAX_PLAYERS),
                       w // 2, 350)
         self.addTextBox("players", pg.Rect((w - butW) // 2, 370, butW, 70))
@@ -424,8 +424,8 @@ class JoinMPMenu(Menu):
         super().__init__(w, h)
         self.starBG()
         butW = 300
-        self.addLabel("Enter the IP address to connect to:", w // 2, 225)
-        self.addTextBox("IP", pg.Rect((w - butW) // 2, 250, butW, 100),
+        self.addLabel("Enter the name of room to connect to:", w // 2, 225)
+        self.addTextBox("room", pg.Rect((w - butW) // 2, 250, butW, 100),
                         self.connectToServer)
         self.addStatusBox("status", "", w // 2, 400)
         self.addButton("CONNECT AND START", pg.Rect((w - butW) // 2,
