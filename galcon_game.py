@@ -1,9 +1,11 @@
 from menu import Menu, StartMPMenu, JoinMPMenu, SettingsMenu, PreGameMenu
+from galcon_planets import GameView
 import pygame as pg
 import pygame.display as disp
 import pygame.event as pgevent
 import pygame.time as pgtime
 import pygame.freetype as pgfont
+
 
 
 class GalconGame:
@@ -22,6 +24,7 @@ class GalconGame:
         self.joinMPMenu = None
         self.preGameMenu = None
         self.settingsMenu = None
+        self.gameView = None
         
         # create the menu beforehand
         self.mainMenu = Menu(self.w, self.h)
@@ -84,7 +87,7 @@ class GalconGame:
         disp.update()
 
     def show_start_mp_menu(self):
-        self.startMPMenu = StartMPMenu(self.w, self.h, self.start_pre_game, self.show_main_menu)
+        self.startMPMenu = StartMPMenu(self.w, self.h, self.show_game_view, self.show_main_menu)
         self.startMPMenu.pressed = None
         self.mode = self.startMPMenu
         self.screen.blit(self.mode.bg, (0, 0))
@@ -101,6 +104,18 @@ class GalconGame:
         self.preGameMenu = PreGameMenu(self.w, self.h)
         self.mode = self.preGameMenu
         self.screen.blit(self.mode.bg, (0, 0))
+        disp.update()
+    
+    def show_game_view(self):
+        self.game_view = GameView(self.w, self.h)
+        self.game_view.accept_planets(
+            self.game_view.generate_mocked_planets(
+                self.user, [User("Bot2", (0, 0, 255)), User("Bot2", (0, 255, 0))]
+            )
+        )
+        self.mode = self.game_view
+        self.screen.blit(self.mode.bg, (0, 0))
+        self.game_view.draw(self.screen, self.user)
         disp.update()
 
     def play_music(self):
