@@ -107,10 +107,10 @@ class GalconGame:
         disp.update()
     
     def show_game_view(self):
-        self.game_view = GameView(self.w, self.h)
+        self.game_view = GameView(self.w, self.h, self.screen, self.user)
         self.game_view.accept_planets(
             self.game_view.generate_mocked_planets(
-                self.user, [User("Bot2", (0, 0, 255)), User("Bot2", (0, 255, 0))]
+                self.user, [User("Bot1", (0, 0, 255)), User("Bot2", (0, 255, 0))]
             )
         )
         self.mode = self.game_view

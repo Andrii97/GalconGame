@@ -11,14 +11,22 @@ COLORRED = (255, 0, 0)
 COLORGREEN = (0, 255, 0)
 COLORBLUE = (0, 0, 255)
 
+planets = {
+    COLORRED : planet_red_img,
+    COLORGREEN: planet_green_img,
+    COLORBLUE: planet_blue_img
+}
 
 class GameView(Menu):
-    def __init__(self, w, h):
+    def __init__(self, w, h, screen, user):
         self.w = w
         self.h = h
+        self.screen = screen
+        self.user = user
         self.bg = pg.Surface((w, h))
         self.star_bg()
         self.planets = []
+        self.active_planet = None
     
     def accept_planets(self, planets):
         for planet in planets:
@@ -29,8 +37,21 @@ class GameView(Menu):
             planet.draw(screen)
         pg.display.update()
 
+    def draw_info(self, screen):
+        rect = pg.Rect(0,self.h - 100, 300, 100)
+        screen.fill((0, 0, 0), rect)
+        pg.draw.rect(screen, pg.Color("red"), rect, 1)
+        if self.active_planet is not None:
+            text_image, _ = Menu.LABELFONT.render("Planet info: " + self.active_planet.owner.name, pg.Color("red"))
+            screen.blit(text_image, (10, self.h - 80))
+
     def mouse_move(self, event):
-        pass
+        x, y = event.pos
+        self.active_planet = None
+        for planet in self.planets:
+            if ((x - planet.pos_x) ** 2 + (y - planet.pos_y) ** 2) < planet.radius ** 2:
+                self.active_planet = planet
+                break
 
     def timer_fired(self):
         pass
@@ -45,28 +66,22 @@ class GameView(Menu):
         pass
 
     def redraw(self, screen):
-        pass
+        self.draw(screen, self.user)
+        self.draw_info(screen)
+        
     
 
     def generate_mocked_planets(self, player, enemies): 
         planets = []
         # for current player
-        planets.append(Planet(1, 100, 100, randint(20, 30), player))
-        planets.append(Planet(2, 400, 200, randint(20, 30), player))
+        planets.append(Planet(1, 100, 100, randint(30, 60), player))
+        planets.append(Planet(2, 400, 200, randint(30, 60), player))
 
         # for enemies
-        planets.append(Planet(3, 720, 200, randint(20, 30), enemies[0]))
-        planets.append(Planet(3, 850, 600, randint(20, 30), enemies[1]))
+        planets.append(Planet(3, 720, 200, randint(30, 100), enemies[0]))
+        planets.append(Planet(3, 850, 600, randint(30, 100), enemies[1]))
 
         return planets
-
-class PlanetSprite(pg.sprite.Sprite):
-    def __init__(self):
-        pg.sprite.Sprite.__init__(self)
-        pg.draw.circle(self.image, (255, 0, 0), (150, 200), 25, 0 )
-        self.rect = self.image.get_rect()
-        self.rect.center = (150, 200)
-
 
 class Planet(pg.sprite.Sprite):
 
@@ -77,7 +92,10 @@ class Planet(pg.sprite.Sprite):
         self.pos_y = y
         self.radius = radius
         self.owner = owner
-        self.__load_image_for_color__()
+
+        # load sprite for image, 
+        self.img = self.__load_image_for_color__()
+
         self.rect = self.img.get_rect()
         self.rect.center = (x, y)
 
@@ -85,11 +103,6 @@ class Planet(pg.sprite.Sprite):
         screen.blit(self.img, self.rect)
 
     def __load_image_for_color__(self):
-        if self.owner.color == COLORRED:
-            self.img = planet_red_img
-        elif self.owner.color == COLORGREEN:
-            self.img = planet_green_img
-        elif self.owner.color == COLORBLUE:
-            self.img = planet_blue_img
-        else: 
-            self.img = planet_green_img
+        img = planets.get(self.owner.color, planet_blue_img)
+        img = pg.transform.scale(img, (self.radius * 2, self.radius * 2))
+        return img
