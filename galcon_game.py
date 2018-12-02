@@ -79,7 +79,6 @@ class GalconGame:
 
     def show_settings(self):
         self.settingsMenu = SettingsMenu(self.w, self.h, self.user, self.show_main_menu)
-        self.settingsMenu.pressed = None
         self.mode = self.settingsMenu
         self.screen.blit(self.mode.bg, (0, 0))
         disp.update()

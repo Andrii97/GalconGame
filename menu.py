@@ -5,6 +5,7 @@ import pygame.surfarray as sfa
 import pygame.transform as tf
 import pygame.freetype as pgfont
 import numpy as np
+import re
 from random import *
 MAX_PLAYERS, MIN_PLAYERS = 3, 2
 
@@ -14,6 +15,7 @@ class Menu:
     pgfont.init()
     LABELFONT = pgfont.SysFont('Tahoma', 16)
     FONTCOLOR = (0, 255, 0)
+    ERRORCOLOR = (255, 0, 0)
 
     def __init__(self, w, h):
         super().__init__()
@@ -22,6 +24,7 @@ class Menu:
         self.textBoxDict = dict()
         self.statusBoxDict = dict()
         self.statusBoxes = sp.RenderUpdates()
+        self.error_text = ''
         self.pressed = None
         self.textBoxActive = None
         self.bg = pg.Surface((w, h))
@@ -52,6 +55,19 @@ class Menu:
     def add_button(self, *args):
         self.buttons.add(Button(*args))
 
+    def add_color_button(self, *args):
+        but = ColorButton(*args)
+        if self.user.color == but.color_p:
+            self.pressed = but
+            but.press()
+
+        self.buttons.add(but)
+
+    def get_color_button(self):
+        for but in self.buttons:
+            if isinstance(but, ColorButton) and but.pressed:
+                return but
+
     def add_text_box(self, name, *args, **kwargs):
         new_box = TextBox(*args, **kwargs)
         self.textBoxDict[name] = new_box
@@ -59,6 +75,9 @@ class Menu:
 
     def get_text_box(self, name):
         return self.textBoxDict[name].text
+
+    def get_status_box(self, name):
+        return self.statusBoxDict[name]
 
     def add_label(self, text, x, y, font=None, anchor=None):
         if font is None:
@@ -97,13 +116,14 @@ class Menu:
         pass
 
     def mouse_move(self, event):
-        if self.pressed: 
+        if self.pressed and not isinstance(self.pressed, ColorButton):
             return
         for but in self.buttons:
-            if but.contains_pt(event.pos):
-                but.mouse_over()
-            else:
-                but.un_mouse_over()
+            if not isinstance(but, ColorButton):
+                if but.contains_pt(event.pos):
+                    but.mouse_over()
+                else:
+                    but.un_mouse_over()
 
     def mouse_down(self, event):
         if self.textBoxActive: 
@@ -111,7 +131,12 @@ class Menu:
         if event.button == 1:
             for but in self.buttons:
                 if but.contains_pt(event.pos):
-                    if isinstance(but, Button):
+                    if isinstance(but, ColorButton):
+                        if self.pressed:
+                            self.pressed.unpress()
+                        self.pressed = but
+                        but.press()
+                    elif isinstance(but, Button):
                         self.pressed = but
                         but.press()
                     elif isinstance(but, TextBox):
@@ -119,6 +144,8 @@ class Menu:
                         but.activate()
 
     def mouse_up(self, event):
+        if isinstance(self.pressed, ColorButton):
+            return
         if self.pressed:
             if self.pressed.contains_pt(event.pos):
                 self.pressed.release()
@@ -131,7 +158,7 @@ class Menu:
             if event.key == 8:  # backspace
                 self.textBoxActive.remove_text()
             elif event.key == 13:
-                self.textBoxActive.enter_fn()
+                self.textBoxActive.deactivate()
             else:
                 self.textBoxActive.add_text(event.unicode)
 
@@ -200,6 +227,45 @@ class Button(sp.DirtySprite):
         self.image = self.imageBase
         if self.pressed: 
             self.fn(*self.args)
+
+
+class ColorButton(sp.DirtySprite):
+
+    pgfont.init()
+    FONT = pgfont.SysFont('Tahoma', 16)
+
+    def __init__(self, text, rect, color):
+        super().__init__()
+        self.text = text
+        self.rect = rect
+        self.color = tuple(component / 2 for component in color)
+        self.imageBase = pg.Surface((rect.width, rect.height))
+        self.color_p = color
+        self.imageMouseOver = pg.Surface((rect.width, rect.height))
+        self.imageMousePress = pg.Surface((rect.width, rect.height))
+        self.image = self.imageBase
+        self.__createImages__()
+
+        self.pressed = False
+
+    def __createImages__(self):
+        self.imageBase.fill(self.color)
+        self.imageMousePress.fill(self.color_p)
+
+    def contains_pt(self, pt):
+        return self.rect.collidepoint(pt)
+
+    def press(self):
+        self.image = self.imageMousePress
+        self.pressed = True
+
+    def unpress(self):
+        self.image = self.imageBase
+        self.pressed = False
+
+    def release(self):
+        self.image = self.imageBase
+        self.pressed = False
 
 
 class TextBox(sp.DirtySprite):
@@ -295,7 +361,7 @@ class StatusBox(sp.DirtySprite):
             self.font = StatusBox.FONT
         else: 
             self.font = font
-        if text_color is None: 
+        if text_color is None:
             self.textColor = StatusBox.COLOR
         else: 
             self.textColor = text_color
@@ -382,22 +448,50 @@ class MultilineLabel(sp.Sprite):
 
 
 class SettingsMenu(Menu):
+    COLORWHITE = (255, 255, 255)
+    COLORRED = (255, 0, 0)
+    COLORGREEN = (0, 255, 0)
+    COLORBLUE = (0, 0, 255)
+
     def __init__(self, w, h, user, main_menu):
         super().__init__(w, h)
         self.star_bg()
         self.mainMenu = main_menu
+        self.user = user
         but_w = 300
         self.add_label("Change Name:", w // 2, 230)
         self.add_text_box("Name", pg.Rect((w - but_w) // 2, 250, but_w, 70), default_text=user.name)
+
         self.add_label("Change Color:", w // 2, 350)
-        self.add_text_box("Color", pg.Rect((w - but_w) // 2, 370, but_w, 70))
-        self.add_status_box("status", "", w // 2, 480)
-        self.add_button("SAVE", pg.Rect((w - but_w) // 2, 500, but_w, 50), self.validate)
-        self.add_button("BACK", pg.Rect((w - but_w) // 2, 560, but_w, 50), main_menu)
+        self.add_color_button("", pg.Rect((w - but_w) // 2, 370, 60, 50), self.COLORRED)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 80, 370, 60, 50), self.COLORBLUE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 160, 370, 60, 50), self.COLORGREEN)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 240, 370, 60, 50), self.COLORWHITE)
+
+        self.add_status_box("status", "", w // 2, 460)
+        self.add_button("SAVE", pg.Rect((w - but_w) // 2, 480, but_w, 50), self.validate)
+        self.add_button("BACK", pg.Rect((w - but_w) // 2, 540, but_w, 50), main_menu)
 
     def validate(self):
-        #Check values
-        self.mainMenu()
+        # Check values
+        new_name = self.get_text_box("Name")
+        new_color = self.get_color_button().color_p
+
+        if re.match(r'[a-zA-Z]+[a-zA-Z0-9]*$', new_name) and 3 < len(new_name) < 17:
+            self.user.name = new_name
+            self.user.color = new_color
+            self.mainMenu()
+        elif len(new_name) < 4:
+            self.get_status_box('status').update_text("Username must be at least 4 characters", self.ERRORCOLOR)
+        elif len(new_name) > 16:
+            self.get_status_box('status').update_text("Username can't be loner than 16 characters", self.ERRORCOLOR)
+        elif new_name == '':
+            self.get_status_box('status').update_text("Username can't be blank", self.ERRORCOLOR)
+        elif new_name[0].isdigit():
+            self.get_status_box('status').update_text("Username can't start with a digit", self.ERRORCOLOR)
+        else:
+            self.get_status_box('status').update_text("Username contains forbidden symbols", self.ERRORCOLOR)
+
 
 
 class StartMPMenu(Menu):
