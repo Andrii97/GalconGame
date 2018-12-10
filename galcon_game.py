@@ -19,12 +19,15 @@ class GalconGame:
         disp.set_caption("Galcon-Client-Team-3")
         self.running = True
         self.mode = None
+        self.in_game = False
 
         self.startMPMenu = None
         self.joinMPMenu = None
         self.preGameMenu = None
         self.settingsMenu = None
         self.gameView = None
+
+        self.all_sprites = pg.sprite.Group()
         
         # create the menu beforehand
         self.mainMenu = Menu(self.w, self.h)
@@ -51,7 +54,16 @@ class GalconGame:
                 break
             # step timer
             self.timer_fired()
+
+            if self.in_game:
+                self.all_sprites.add(self.gameView.ships)
+                self.all_sprites.update(self.screen)
+                for ship in self.gameView.ships:
+                    if ship.reached == True:
+                        self.gameView.ships.remove(ship)
+                self.all_sprites.empty()
             self.redraw()
+            self.screen.blit(self.mode.bg, (0, 0))
             self.clock.tick(30)
 
     def __createMainMenu__(self):
@@ -107,15 +119,16 @@ class GalconGame:
         disp.update()
     
     def show_game_view(self):
-        self.game_view = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
-        self.game_view.accept_planets(
-            self.game_view.generate_mocked_planets(
+        self.gameView = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
+        self.gameView.accept_planets(
+            self.gameView.generate_mocked_planets(
                 self.user, [User("Bot1", (0, 0, 255)), User("Bot2", (0, 255, 0))]
             )
         )
-        self.mode = self.game_view
+        self.mode = self.gameView
+        self.in_game = True
         self.screen.blit(self.mode.bg, (0, 0))
-        self.game_view.draw(self.screen, self.user)
+        self.gameView.draw(self.screen, self.user)
         disp.update()
 
     def play_music(self):
