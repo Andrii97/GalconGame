@@ -44,8 +44,8 @@ class GameView(Menu):
         self.exit_menu_shown = False
 
         self.add_status_box("status", "Exit to main menu?", w // 2, h // 2 - 50)
-        self.add_button("EXIT", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
-        self.add_button("BACK", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
+        self.add_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
+        self.add_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
 
     def accept_planets(self, planets):
         for planet in planets:
