@@ -1,18 +1,19 @@
-from menu import Menu, StartMPMenu, JoinMPMenu, SettingsMenu, PreGameMenu
-from galcon_planets import GameView
 import pygame as pg
 import pygame.display as disp
 import pygame.event as pgevent
-import pygame.time as pgtime
 import pygame.freetype as pgfont
+import pygame.time as pgtime
 
+from galcon_view import GameView
+from menu import Menu, StartMPMenu, JoinMPMenu, SettingsMenu, PreGameMenu
+from models import Color
 
 
 class GalconGame:
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        self.user = User('User', (255, 0, 0))
+        self.user = User('User', Color.RED)
         pg.mixer.init()
         self.clock = pgtime.Clock()
         self.screen = disp.set_mode((w, h))
@@ -107,15 +108,15 @@ class GalconGame:
         disp.update()
     
     def show_game_view(self):
-        self.game_view = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
-        self.game_view.accept_planets(
-            self.game_view.generate_mocked_planets(
-                self.user, [User("Bot1", (0, 0, 255)), User("Bot2", (0, 255, 0))]
+        self.gameView = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
+        self.gameView.accept_planets(
+            self.gameView.generate_mocked_planets(
+                self.user, [User("Bot1", Color.BLUE), User("Bot2", Color.GREEN)]
             )
         )
-        self.mode = self.game_view
+        self.mode = self.gameView
         self.screen.blit(self.mode.bg, (0, 0))
-        self.game_view.draw(self.screen, self.user)
+        self.gameView.draw(self.screen, self.user)
         disp.update()
 
     def play_music(self):

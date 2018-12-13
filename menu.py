@@ -1,21 +1,25 @@
+import re
+from random import *
+
+import numpy as np
 import pygame as pg
+import pygame.freetype as pgfont
 import pygame.gfxdraw as gfx
 import pygame.sprite as sp
 import pygame.surfarray as sfa
 import pygame.transform as tf
-import pygame.freetype as pgfont
-import numpy as np
-import re
-from random import *
+
+from models import Color
+
 MAX_PLAYERS, MIN_PLAYERS = 3, 2
 
 
 class Menu:
 
     pgfont.init()
-    LABELFONT = pgfont.SysFont('Tahoma', 16)
-    FONTCOLOR = (0, 255, 0)
-    ERRORCOLOR = (255, 0, 0)
+    LABEL_FONT = pgfont.SysFont('Tahoma', 16)
+    FONT_COLOR = Color.GREEN
+    ERROR_COLOR = Color.RED
 
     def __init__(self, w, h):
         super().__init__()
@@ -49,7 +53,7 @@ class Menu:
 
     def white_star(self, r):
         a = np.full((3, 3, 3), 0, dtype=int)
-        a[1][1] = (255, 255, 255)
+        a[1][1] = Color.WHITE
         return tf.smoothscale(sfa.make_surface(a), (r, r))
 
     def add_button(self, *args):
@@ -81,8 +85,8 @@ class Menu:
 
     def add_label(self, text, x, y, font=None, anchor=None):
         if font is None:
-            font = Menu.LABELFONT
-        text_image, rt = font.render(text, Menu.FONTCOLOR)
+            font = self.LABEL_FONT
+        text_image, rt = font.render(text, self.FONT_COLOR)
         if anchor == 'N':
             top_left = x - rt.width // 2, y
         elif anchor == 'W':
@@ -171,9 +175,9 @@ class Menu:
 
 class Button(sp.DirtySprite):
 
-    COLOR = (0, 255, 0)
-    COLORO = (0, 63, 0)
-    COLORP = (0, 127, 0)
+    COLOR = Color.GREEN
+    COLOR_MOUSE_OVER = Color.MIDNIGHT_EXPRESS
+    COLOR_PRESS = Color.DARK_GREEN
 
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 16)
@@ -199,10 +203,10 @@ class Button(sp.DirtySprite):
         img_rect = self.image.get_rect()
         gfx.rectangle(self.imageBase, img_rect, Button.COLOR)
         self.imageBase.blit(text_image, text_top_left)
-        self.imageMouseOver.fill(Button.COLORO)
+        self.imageMouseOver.fill(Button.COLOR_MOUSE_OVER)
         gfx.rectangle(self.imageMouseOver, img_rect, Button.COLOR)
         self.imageMouseOver.blit(text_image, text_top_left)
-        self.imageMousePress.fill(Button.COLORP)
+        self.imageMousePress.fill(Button.COLOR_PRESS)
         gfx.rectangle(self.imageMousePress, img_rect, Button.COLOR)
         self.imageMousePress.blit(text_image, text_top_left)
 
@@ -270,9 +274,9 @@ class ColorButton(sp.DirtySprite):
 
 class TextBox(sp.DirtySprite):
 
-    COLOR = (0, 0, 255)
-    COLORO = (0, 0, 63)
-    COLORP = (127, 127, 255)
+    COLOR = Color.BLUE
+    COLOR_MOUSE_OVER = Color.MIDNIGHT_EXPRESS
+    COLOR_PRESS = Color.LIGHT_SLATE_BLUE
 
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 20)
@@ -294,7 +298,7 @@ class TextBox(sp.DirtySprite):
     def __staticImages__(self):
         self.imageBase = pg.Surface((self.rect.width, self.rect.height))
         gfx.rectangle(self.imageBase, self.imgRect, TextBox.COLOR)
-        self.imageMouseOver.fill(TextBox.COLORO)
+        self.imageMouseOver.fill(TextBox.COLOR_MOUSE_OVER)
         gfx.rectangle(self.imageMouseOver, self.imgRect, TextBox.COLOR)
         if self.text:
             static_text_image, r = TextBox.FONT.render(self.text, TextBox.COLOR)
@@ -303,9 +307,9 @@ class TextBox(sp.DirtySprite):
 
     def __typingImages__(self):
         self.imageMousePress.fill((0, 0, 0))
-        gfx.rectangle(self.imageMousePress, self.imgRect, TextBox.COLORP)
+        gfx.rectangle(self.imageMousePress, self.imgRect, TextBox.COLOR_PRESS)
         if self.text:
-            text_image, r = TextBox.FONT.render(self.text, TextBox.COLORP)
+            text_image, r = TextBox.FONT.render(self.text, TextBox.COLOR_PRESS)
             self.textTopLeft = ((self.rect.width - text_image.get_width()) // 2, (self.rect.height - 
                                                                                   text_image.get_height()) // 2)
             self.imageMousePress.blit(text_image, self.textTopLeft)
@@ -348,7 +352,7 @@ class TextBox(sp.DirtySprite):
 
 class StatusBox(sp.DirtySprite):
 
-    COLOR = (0, 255, 0)
+    COLOR = Color.GREEN
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 16)
 
@@ -390,7 +394,7 @@ class StatusBox(sp.DirtySprite):
 
 class MultilineLabel(sp.Sprite):
 
-    COLOR = (0, 255, 0)
+    COLOR = Color.GREEN
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 20)
     PARA_MARGIN = 15
@@ -448,12 +452,6 @@ class MultilineLabel(sp.Sprite):
 
 
 class SettingsMenu(Menu):
-    COLORRED = (255, 0, 0)
-    COLORGREEN = (0, 255, 0)
-    COLORBLUE = (0, 0, 255)
-    COLORYELLOW = (255, 255, 0)
-    COLORORANGE = (255, 165, 0)
-    COLORPURPLE = (128, 0, 128)
 
     def __init__(self, w, h, user, main_menu):
         super().__init__(w, h)
@@ -465,12 +463,12 @@ class SettingsMenu(Menu):
         self.add_text_box("Name", pg.Rect((w - but_w) // 2, 250, but_w, 70), default_text=user.name)
 
         self.add_label("Change Color:", w // 2, 350)
-        self.add_color_button("", pg.Rect((w - but_w) // 2, 370, 40, 40), self.COLORRED)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 52, 370, 40, 40), self.COLORGREEN)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 104, 370, 40, 40), self.COLORBLUE)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 156, 370, 40, 40), self.COLORYELLOW)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 208, 370, 40, 40), self.COLORORANGE)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 260, 370, 40, 40), self.COLORPURPLE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2, 370, 40, 40), Color.RED)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 52, 370, 40, 40), Color.GREEN)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 104, 370, 40, 40), Color.BLUE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 156, 370, 40, 40), Color.YELLOW)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 208, 370, 40, 40), Color.ORANGE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 260, 370, 40, 40), Color.PURPLE)
 
         self.add_status_box("status", "", w // 2, 460)
         self.add_button("SAVE", pg.Rect((w - but_w) // 2, 480, but_w, 50), self.validate)
@@ -486,15 +484,15 @@ class SettingsMenu(Menu):
             self.user.color = new_color
             self.mainMenu()
         elif len(new_name) < 4:
-            self.get_status_box('status').update_text("Username must be at least 4 characters", self.ERRORCOLOR)
+            self.get_status_box('status').update_text("Username must be at least 4 characters", self.ERROR_COLOR)
         elif len(new_name) > 16:
-            self.get_status_box('status').update_text("Username can't be loner than 16 characters", self.ERRORCOLOR)
+            self.get_status_box('status').update_text("Username can't be loner than 16 characters", self.ERROR_COLOR)
         elif new_name == '':
-            self.get_status_box('status').update_text("Username can't be blank", self.ERRORCOLOR)
+            self.get_status_box('status').update_text("Username can't be blank", self.ERROR_COLOR)
         elif new_name[0].isdigit():
-            self.get_status_box('status').update_text("Username can't start with a digit", self.ERRORCOLOR)
+            self.get_status_box('status').update_text("Username can't start with a digit", self.ERROR_COLOR)
         else:
-            self.get_status_box('status').update_text("Username contains forbidden symbols", self.ERRORCOLOR)
+            self.get_status_box('status').update_text("Username contains forbidden symbols", self.ERROR_COLOR)
 
 
 class StartMPMenu(Menu):
