@@ -448,10 +448,12 @@ class MultilineLabel(sp.Sprite):
 
 
 class SettingsMenu(Menu):
-    COLORWHITE = (255, 255, 255)
     COLORRED = (255, 0, 0)
     COLORGREEN = (0, 255, 0)
     COLORBLUE = (0, 0, 255)
+    COLORYELLOW = (255, 255, 0)
+    COLORORANGE = (255, 165, 0)
+    COLORPURPLE = (128, 0, 128)
 
     def __init__(self, w, h, user, main_menu):
         super().__init__(w, h)
@@ -463,10 +465,12 @@ class SettingsMenu(Menu):
         self.add_text_box("Name", pg.Rect((w - but_w) // 2, 250, but_w, 70), default_text=user.name)
 
         self.add_label("Change Color:", w // 2, 350)
-        self.add_color_button("", pg.Rect((w - but_w) // 2, 370, 60, 50), self.COLORRED)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 80, 370, 60, 50), self.COLORBLUE)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 160, 370, 60, 50), self.COLORGREEN)
-        self.add_color_button("", pg.Rect((w - but_w) // 2 + 240, 370, 60, 50), self.COLORWHITE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2, 370, 40, 40), self.COLORRED)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 52, 370, 40, 40), self.COLORGREEN)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 104, 370, 40, 40), self.COLORBLUE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 156, 370, 40, 40), self.COLORYELLOW)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 208, 370, 40, 40), self.COLORORANGE)
+        self.add_color_button("", pg.Rect((w - but_w) // 2 + 260, 370, 40, 40), self.COLORPURPLE)
 
         self.add_status_box("status", "", w // 2, 460)
         self.add_button("SAVE", pg.Rect((w - but_w) // 2, 480, but_w, 50), self.validate)
@@ -491,7 +495,6 @@ class SettingsMenu(Menu):
             self.get_status_box('status').update_text("Username can't start with a digit", self.ERRORCOLOR)
         else:
             self.get_status_box('status').update_text("Username contains forbidden symbols", self.ERRORCOLOR)
-
 
 
 class StartMPMenu(Menu):
