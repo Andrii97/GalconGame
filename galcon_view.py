@@ -23,37 +23,37 @@ class GameView(Menu):
         self.active_planet = None
         self.pressed = None
         self.exit_menu_shown = False
+        self.selected_planet = None
 
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
         self.add_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
         self.add_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
-    
+
     def accept_planets(self, planets):
         for planet in planets:
             self.planets.append(planet)
-    
-    def draw(self, screen, user):
-        for planet in self.planets:
-            planet.draw(screen)
-        pg.display.update()
 
-    def draw_exit_menu(self, screen):
-        if self.exit_menu_shown:
-            self.buttons.draw(screen)
-            self.statusBoxes.draw(screen)
+    def draw(self, screen):
+        rects = []
+        for planet in self.planets:
+            planet.units.update()
+            rects += planet.draw(screen)
+        return rects
+
+    def rect_exit_menu(self, screen):
+        return self.buttons.draw(screen) + self.statusBoxes.draw(screen)
 
     def hide_exit_menu(self):
         self.exit_menu_shown = False
-        self.buttons.clear(self.screen, self.bg)
-        self.statusBoxes.clear(self.screen, self.bg)
 
     def draw_info(self, screen):
         rect = pg.Rect(0, self.h - 100, 300, 100)
         screen.fill((0, 0, 0), rect)
-        pg.draw.rect(screen, pg.Color("red"), rect, 1)
+        rects = pg.draw.rect(screen, pg.Color("red"), rect, 1)
         if self.active_planet is not None:
             text_image, _ = Menu.LABEL_FONT.render("Planet info: " + self.active_planet.owner.name, pg.Color("red"))
             screen.blit(text_image, (10, self.h - 80))
+        return rects
 
     def mouse_move(self, event):
         x, y = event.pos
@@ -93,11 +93,16 @@ class GameView(Menu):
             self.exit_menu_shown = True
 
     def redraw(self, screen):
-        self.draw(screen, self.user)
-        self.draw_info(screen)
-        self.draw_exit_menu(screen)
+        rects = []
+        rects += self.draw(screen)
+        rects.append(self.draw_info(screen))
+        rects += self.rect_exit_menu(screen)
+        if not self.exit_menu_shown:
+            self.buttons.clear(self.screen, self.bg)
+            self.statusBoxes.clear(self.screen, self.bg)
+        return rects
 
-    def generate_mocked_planets(self, player, enemies): 
+    def generate_mocked_planets(self, player, enemies):
         planets = []
         # for current player
         planets.append(Planet(1, 100, 100, randint(30, 60), player))

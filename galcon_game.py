@@ -116,7 +116,7 @@ class GalconGame:
         )
         self.mode = self.gameView
         self.screen.blit(self.mode.bg, (0, 0))
-        self.gameView.draw(self.screen, self.user)
+        self.gameView.draw(self.screen)
         disp.update()
 
     def play_music(self):
