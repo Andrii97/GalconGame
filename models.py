@@ -79,7 +79,7 @@ class Planet(pg.sprite.Sprite):
         if self.pName is None:
             self.pName = pName
 
-    def closestPoint(self, x, y):
+    def closest_point(self, x, y):
         """Returns the closest point to pt on the planet."""
         angle = get_angle(*self.loc, x, y)
         return carte_plus_polar(*self.loc, self.radius, angle)
@@ -99,14 +99,14 @@ class Planet(pg.sprite.Sprite):
                 self.cap(owner)
                 self.units.count = 1
 
-    def spawnTick(self):
+    def spawn_tick(self):
         if not self.capped or self.units >= Planet.SPAWN_CAP: return
         self.spawnTimer -= self.spawnRate
         if self.spawnTimer <= 0:
             self.units += 1
             self.spawnTimer = Planet.SPAWN_TIME
 
-    def sendShips(self, game, destination_planet):
+    def send_ships(self, game, destination_planet):
 
         # finds available locations around a planet to spawn the
         # ships in a circle around a planet
@@ -117,32 +117,32 @@ class Planet(pg.sprite.Sprite):
         cluster = Cluster(destination_planet, self.owner)
         game.clusterNames[cluster.name] = cluster
 
-        #initial values
-        startAngle = get_angle(*self.loc, *destination_planet.loc)
-        spawnDist = self.radius + Ship.RADIUS + BUFFER_SPACE
-        shipsMade = 0
-        while shipsMade < num_ships:
-            angle_step = math.asin((Ship.RADIUS + BUFFER_SPACE) / (spawnDist))
-            currAngle = startAngle
-            while currAngle < pi * 2:
-                spawnPt = carte_plus_polar(*self.loc, spawnDist, currAngle)
+        # initial values
+        start_angle = get_angle(*self.loc, *destination_planet.loc)
+        spawn_dist = self.radius + Ship.RADIUS + BUFFER_SPACE
+        ships_made = 0
+        while ships_made < num_ships:
+            angle_step = math.asin((Ship.RADIUS + BUFFER_SPACE) / (spawn_dist))
+            curr_angle = start_angle
+            while curr_angle < pi * 2:
+                spawnPt = carte_plus_polar(*self.loc, spawn_dist, curr_angle)
                 try_ship = Ship(spawnPt, self, destination_planet)
                 collision = (pg.sprite.spritecollideany(try_ship, game.ships,
-                                                 Ship.collided_ship) or
+                                                        Ship.collided_ship) or
                              pg.sprite.spritecollideany(try_ship, game.planets,
-                                                 Ship.collided_ship))
+                                                        Ship.collided_ship))
                 if collision:
                     # failPoints.append(spawnPt)
-                    del try_ship # get rid of failed object
+                    del try_ship  # get rid of failed object
                 else:
                     game.ships.add(try_ship)
                     cluster.add(try_ship)
-                    shipsMade += 1
+                    ships_made += 1
                     self.units.count -= 1
-                    if shipsMade == num_ships: break
-                currAngle += 2 * angle_step
+                    if ships_made == num_ships: break
+                curr_angle += 2 * angle_step
 
-            spawnDist += 2 * Ship.RADIUS + BUFFER_SPACE
+            spawn_dist += 2 * Ship.RADIUS + BUFFER_SPACE
 
 
 class PlanetUnits(pg.sprite.DirtySprite):
@@ -192,46 +192,45 @@ class PlanetUnits(pg.sprite.DirtySprite):
 class Cluster(pg.sprite.RenderUpdates):
     INDEX = 0
 
-    def __init__(self, name, teamNo=None, dest=None):
+    def __init__(self, name, owner=None, dest=None):
         super().__init__()
         self.name = name
-        self.teamNo = teamNo
+        self.owner = owner
         self.dest = dest
 
-    def __init__(self, dest, team):
+    def __init__(self, dest, owner):
         super().__init__()
         # self.name = name
-        self.teamNo = team
+        self.owner = owner
         self.dest = dest
         self.name = Cluster.INDEX
         Cluster.INDEX += 1
 
-
     def move(self, ships, planets):
 
-        def moveUnit(unit, tryTurns):
+        def move_unit(unit, tryTurns):
             for dist in range(Ship.VELOCITY, 0, -1):
                 for turn in tryTurns:
                     unit.try_move(dist, turn)
-                    collidePlanet = pg.sprite.spritecollideany(unit, planets,
-                                                        pg.sprite.collide_circle)
-                    if collidePlanet is unit.destination_planet:
-                        unit.destination_planet.arrival(self.teamNo)
+                    collide_planet = pg.sprite.spritecollideany(unit, planets,
+                                                               pg.sprite.collide_circle)
+                    if collide_planet is unit.destination_planet:
+                        unit.destination_planet.arrival(self.owner)
                         unit.kill()
                         return
                     else:
                         pass
-                        # moveUnit(unit, filtertryTurns)
+                        # move_unit(unit, filtertryTurns)
                         # return
                     if (len(pg.sprite.spritecollide(unit, ships, False,
-                                             Ship.collided_ship)) == 1 and
-                            not collidePlanet):
+                                                    Ship.collided_ship)) == 1 and
+                            not collide_planet):
                         unit.do_move()
                         return
                     else:
                         unit.un_try_move()
 
-        numTurns = int (Ship.MAX_TURN // Ship.TURN_ANGLE)
+        numTurns = int(Ship.MAX_TURN // Ship.TURN_ANGLE)
         turnList = [i * Ship.TURN_ANGLE for i in range(- numTurns, numTurns + 1)]
         turnList += [Ship.MAX_TURN, -Ship.MAX_TURN]
 
@@ -239,24 +238,24 @@ class Cluster(pg.sprite.RenderUpdates):
             # sorts the possible turns so that the ship tries to go forward
             # first
             tryTurns = sorted(turnList, key=lambda x:
-                              abs(x + normalise(unit.offset_angle)))
-            moveUnit(unit, tryTurns)
+            abs(x + normalise(unit.offset_angle)))
+            move_unit(unit, tryTurns)
 
-    def changeDest(self, dest):
+    def change_dest(self, dest):
         self.dest = dest
         for ship in self:
             ship.destination_planet = dest
 
-    def gamePackage(self):
+    def game_package(self):
         ships = []
         for ship in self:
             ships.append((ship.loc, ship.angle))
-        return self.teamNo, self.dest.pName, ships
+        return self.owner, self.dest.pName, ships
 
-    def checkArrival(self):
+    def check_arrival(self):
         for ship in self:
             if ship.arrive():
-                ship.destination_planet.arrival(self.teamNo)
+                ship.destination_planet.arrival(self.owner)
                 ship.kill()
 
 
@@ -286,7 +285,7 @@ class Ship(pg.sprite.DirtySprite):
         super().__init__(*groups)
 
         self.color = start_planet.owner.color
-        self.team = start_planet.owner
+        self.owner = start_planet.owner
         self.x, self.y = pt
         self.start_planet = start_planet
         self.destination_planet = destination_planet

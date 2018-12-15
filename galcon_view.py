@@ -104,7 +104,7 @@ class GameView(Menu):
                     self.selected_planet.selected = False
                     self.selected_planet = None
                 elif self.selected_planet is not None:
-                    self.selected_planet.sendShips(self, self.active_planet)
+                    self.selected_planet.send_ships(self, self.active_planet)
                     self.selected_planet.selected = False
                     self.selected_planet = None
 
