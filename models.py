@@ -18,6 +18,7 @@ class Color:
     MIDNIGHT_EXPRESS = (0, 0, 63)
     LIGHT_SLATE_BLUE = (127, 127, 255)
     DARK_GREEN = (0, 127, 0)  # it is not real dark
+    BLACK = (0, 0, 0)
 
 
 class Planet(pg.sprite.Sprite):
@@ -45,6 +46,7 @@ class Planet(pg.sprite.Sprite):
         self.spawnTimer = 0
         self.capped = False
         self.owner = owner
+        self.selected = False
         self.units = PlanetUnits(self, round(radius / 2))
         self.sprites = pg.sprite.RenderUpdates()
         self.sprites.add(self.units)
@@ -69,7 +71,6 @@ class Planet(pg.sprite.Sprite):
         img = self.planets.get(self.owner.color, self.planet_blue_img)
         img = pg.transform.scale(img, (self.radius * 2, self.radius * 2))
         return img
-
 
     def name(self, pName):
         if self.pName is None:
@@ -166,8 +167,10 @@ class PlanetUnits(pg.sprite.DirtySprite):
         radius = self.planet.radius + PlanetUnits.AURA
         w = h = radius * 2 + 1
         self.image = pg.Surface((w, h), flags=pg.SRCALPHA)
-
-        gfx.aacircle(self.image, radius, radius, radius, color)
+        if self.planet.selected:
+            gfx.aacircle(self.image, radius, radius, radius, color)
+        else:
+            gfx.aacircle(self.image, radius, radius, radius, Color.BLACK)
         self.font = pgfont.SysFont("Comic Sans MS", self.planet.radius)
         self.text, rt = self.font.render(count, Color.WHITE)
         self.image.blit(self.text, (radius - self.text.get_width() // 2,

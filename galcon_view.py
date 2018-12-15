@@ -4,7 +4,7 @@ import pygame as pg
 import pygame.sprite as sp
 
 from menu import Menu
-from models import Planet
+from models import Planet, Color
 
 
 class GameView(Menu):
@@ -48,7 +48,7 @@ class GameView(Menu):
 
     def draw_info(self, screen):
         rect = pg.Rect(0, self.h - 100, 300, 100)
-        screen.fill((0, 0, 0), rect)
+        screen.fill(Color.BLACK, rect)
         rects = pg.draw.rect(screen, pg.Color("red"), rect, 1)
         if self.active_planet is not None:
             text_image, _ = Menu.LABEL_FONT.render("Planet info: " + self.active_planet.owner.name, pg.Color("red"))
@@ -80,6 +80,19 @@ class GameView(Menu):
                     but.press()
 
     def mouse_up(self, event):
+        if event.button == 1:
+            if self.active_planet is not None:
+                if self.active_planet.owner.name == self.user.name and self.selected_planet is None:
+                    self.selected_planet = self.active_planet
+                    self.selected_planet.selected = True
+                elif self.selected_planet == self.active_planet:
+                    self.selected_planet.selected = False
+                    self.selected_planet = None
+                elif self.selected_planet is not None:
+                    # send_ships
+                    self.selected_planet.selected = False
+                    self.selected_planet = None
+
         if self.pressed:
             if self.pressed.contains_pt(event.pos):
                 self.pressed.release()
