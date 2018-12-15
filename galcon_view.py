@@ -80,7 +80,7 @@ class GameView(Menu):
                     but.press()
 
     def mouse_up(self, event):
-        if event.button == 1:
+        if event.button == 1:  # left click
             if self.active_planet is not None:
                 if self.active_planet.owner.name == self.user.name and self.selected_planet is None:
                     self.selected_planet = self.active_planet

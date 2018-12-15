@@ -50,15 +50,13 @@ class Planet(pg.sprite.Sprite):
         self.units = PlanetUnits(self, round(radius / 2))
         self.sprites = pg.sprite.RenderUpdates()
         self.sprites.add(self.units)
-        # load sprite for image,
         self.img = self.__load_image_for_color__()
-
         self.rect = self.img.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = self.loc
 
     @property
     def loc(self):
-        return self.x, self.y
+        return self.pos_x, self.pos_y
 
     def draw(self, screen):
         screen.blit(self.img, self.rect)
@@ -72,6 +70,11 @@ class Planet(pg.sprite.Sprite):
         img = pg.transform.scale(img, (self.radius * 2, self.radius * 2))
         return img
 
+    def set_image(self):
+        self.img = self.__load_image_for_color__()
+        self.rect = self.img.get_rect()
+        self.rect.center = self.loc
+
     def name(self, pName):
         if self.pName is None:
             self.pName = pName
@@ -81,19 +84,20 @@ class Planet(pg.sprite.Sprite):
         angle = get_angle(*self.loc, x, y)
         return carte_plus_polar(*self.loc, self.radius, angle)
 
-    def cap(self, newTeam):
-        self.team = newTeam
+    def cap(self, new_owner):
+        self.owner = new_owner
         self.capped = True
         self.spawnTimer = Planet.SPAWN_TIME
+        self.set_image()
 
-    def arrival(self, team):
-        if self.team == team:
-            self.units += 1
+    def arrival(self, owner):
+        if self.owner == owner:
+            self.units.count += 1
         else:
-            self.units -= 1
-            if self.units < 0:
-                self.cap(team)
-                self.units = 1
+            self.units.count -= 1
+            if self.units.count < 0:
+                self.cap(owner)
+                self.units.count = 1
 
     def spawnTick(self):
         if not self.capped or self.units >= Planet.SPAWN_CAP: return
