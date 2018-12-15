@@ -18,7 +18,7 @@ class Color:
 
     @staticmethod
     def colors():
-        return [Color.RED, Color.GREEN, Color.BLUE, Color.WHITE, Color.YELLOW, Color.ORANGE, Color.PURPLE]
+        return [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.ORANGE, Color.PURPLE]
     
     @staticmethod
     def random(ignore=None):
@@ -26,7 +26,7 @@ class Color:
         if ignore is not None:
             for x in ignore:
                 colors.remove(x)
-        return colors[randint(0, len(colors))]
+        return colors[randint(0, len(colors) - 1)]
         
 
 
