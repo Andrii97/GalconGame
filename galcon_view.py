@@ -105,11 +105,11 @@ class GameView(Menu):
     def generate_mocked_planets(self, player, enemies):
         planets = []
         # for current player
-        planets.append(Planet(1, 100, 100, randint(30, 60), player))
-        planets.append(Planet(2, 400, 200, randint(30, 60), player))
+        planets.append(Planet(1, 100, 100, randint(30, 60), player, self))
+        planets.append(Planet(2, 400, 200, randint(30, 60), player, self))
 
         # for enemies
-        planets.append(Planet(3, 720, 200, randint(30, 100), enemies[0]))
-        planets.append(Planet(3, 850, 600, randint(30, 100), enemies[1]))
+        planets.append(Planet(3, 720, 200, randint(30, 100), enemies[0], self))
+        planets.append(Planet(3, 850, 600, randint(30, 100), enemies[1], self))
 
         return planets
