@@ -1,5 +1,6 @@
 import math
 from math import pi
+from random import randint
 
 import pygame as pg
 import pygame.freetype as pgfont
@@ -20,6 +21,19 @@ class Color:
     DARK_GREEN = (0, 127, 0)  # it is not real dark
     BLACK = (0, 0, 0)
 
+    @staticmethod
+    def colors():
+        return [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.ORANGE, Color.PURPLE]
+    
+    @staticmethod
+    def random(ignore=None):
+        colors = Color.colors()
+        if ignore is not None:
+            for x in ignore:
+                colors.remove(x)
+        return colors[randint(0, len(colors) - 1)]
+        
+
 
 class Planet(pg.sprite.Sprite):
     SPAWN_TIME = 300
@@ -28,11 +42,17 @@ class Planet(pg.sprite.Sprite):
     planet_red_img = pg.image.load('materials/planet_red.png')
     planet_green_img = pg.image.load('materials/planet_green.png')
     planet_blue_img = pg.image.load('materials/planet_blue.png')
+    planet_orange_img = pg.image.load('materials/planet_orange.png')
+    planet_yellow_img = pg.image.load('materials/planet_yellow.png')
+    planet_purple_img = pg.image.load('materials/planet_purple.png')
 
     planets = {
         Color.RED: planet_red_img,
         Color.GREEN: planet_green_img,
-        Color.BLUE: planet_blue_img
+        Color.BLUE: planet_blue_img,
+        Color.ORANGE: planet_orange_img,
+        Color.YELLOW: planet_yellow_img,
+        Color.PURPLE: planet_purple_img,
     }
 
     def __init__(self, id, x, y, radius, owner, gameMap):

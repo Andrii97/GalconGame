@@ -114,9 +114,11 @@ class GalconGame:
     
     def show_game_view(self):
         self.gameView = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
+        first_bot = User("Bot1", Color.random(ignore=[self.user.color]))
+        second_bot = User("Bot2", Color.random(ignore=[self.user.color, first_bot.color]))
         self.gameView.accept_planets(
             self.gameView.generate_mocked_planets(
-                self.user, [User("Bot1", Color.BLUE), User("Bot2", Color.GREEN)]
+                self.user, [first_bot, second_bot]
             )
         )
         self.mode = self.gameView
