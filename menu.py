@@ -497,11 +497,13 @@ class SettingsMenu(Menu):
 
 class StartMPMenu(Menu):
 
-    def __init__(self, w, h, pre_game_menu, main_menu):
+    def __init__(self, w, h, pre_game_menu, main_menu, user):
         super().__init__(w, h)
         self.star_bg()
         self.preGameMenu = pre_game_menu
         but_w = 300
+        self.add_status_box('name', user.name, self.w // 2, 180, font=pgfont.SysFont('Tahoma', 32),
+                            text_color=user.color)
         self.add_label("Enter room name:", w // 2, 230)
         self.add_text_box("room", pg.Rect((w - but_w) // 2, 250, but_w, 70))
         self.add_label("Number of players (%d-%d):" % (MIN_PLAYERS, MAX_PLAYERS), w // 2, 350)
@@ -518,10 +520,12 @@ class StartMPMenu(Menu):
 
 class JoinMPMenu(Menu):
 
-    def __init__(self, w, h, main_menu):
+    def __init__(self, w, h, main_menu, user):
         super().__init__(w, h)
         self.star_bg()
         but_w = 300
+        self.add_status_box('name', user.name, self.w // 2, 180, font=pgfont.SysFont('Tahoma', 32),
+                            text_color=user.color)
         self.add_label("Enter the name of room to connect to:", w // 2, 225)
         self.add_text_box("room", pg.Rect((w - but_w) // 2, 250, but_w, 100), self.connect_to_server)
         self.add_status_box("status", "", w // 2, 400)

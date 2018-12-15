@@ -60,7 +60,9 @@ class GalconGame:
         self.mainMenu.star_bg()
         but_w = 300
 
-        self.mainMenu.add_label("GALCON", self.w // 2, 100, font=pgfont.SysFont('Tahoma', 32))
+        self.mainMenu.add_label("WELCOME TO GALCON", self.w // 2, 140, font=pgfont.SysFont('Tahoma', 28))
+        self.mainMenu.add_status_box('name', self.user.name, self.w // 2, 180, font=pgfont.SysFont('Tahoma', 32),
+                                     text_color=self.user.color)
         self.mainMenu.add_button("START MULTIPLAYER", pg.Rect((self.w - but_w) // 2, 250, but_w, 50), 
                                  self.show_start_mp_menu)
         self.mainMenu.add_button("JOIN MULTIPLAYER", pg.Rect((self.w - but_w) // 2, 310, but_w, 50), 
@@ -73,6 +75,7 @@ class GalconGame:
         self.mainMenu.pressed = None
         self.mode = self.mainMenu
         self.screen.blit(self.mode.bg, (0, 0))
+        self.mode.update_status_box('name', self.user.name, self.user.color)
         disp.update()
 
         if not pg.mixer.music.get_busy():
@@ -88,16 +91,18 @@ class GalconGame:
         disp.update()
 
     def show_start_mp_menu(self):
-        self.startMPMenu = StartMPMenu(self.w, self.h, self.show_game_view, self.show_main_menu)
+        self.startMPMenu = StartMPMenu(self.w, self.h, self.show_game_view, self.show_main_menu, self.user)
         self.startMPMenu.pressed = None
         self.mode = self.startMPMenu
+        self.startMPMenu.update_status_box('name', self.user.name, self.user.color)
         self.screen.blit(self.mode.bg, (0, 0))
         disp.update()
 
     def show_join_mp_menu(self):
-        self.joinMPMenu = JoinMPMenu(self.w, self.h, self.show_main_menu)
+        self.joinMPMenu = JoinMPMenu(self.w, self.h, self.show_main_menu, self.user)
         self.joinMPMenu.pressed = None
         self.mode = self.joinMPMenu
+        self.joinMPMenu.update_status_box('name', self.user.name, self.user.color)
         self.screen.blit(self.mode.bg, (0, 0))
         disp.update()
 
