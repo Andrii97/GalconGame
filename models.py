@@ -114,7 +114,7 @@ class Planet(pg.sprite.Sprite):
         num_ships = self.units.count // 2
 
         # create a new group of ships
-        cluster = Cluster(destination_planet, self.team)
+        cluster = Cluster(destination_planet, self.owner)
         game.clusterNames[cluster.name] = cluster
 
         #initial values
@@ -129,7 +129,7 @@ class Planet(pg.sprite.Sprite):
                 try_ship = Ship(spawnPt, self, destination_planet)
                 collision = (pg.sprite.spritecollideany(try_ship, game.ships,
                                                  Ship.collided_ship) or
-                             pg.sprite.spritecollideany(try_ship, game.map,
+                             pg.sprite.spritecollideany(try_ship, game.planets,
                                                  Ship.collided_ship))
                 if collision:
                     # failPoints.append(spawnPt)
@@ -138,7 +138,7 @@ class Planet(pg.sprite.Sprite):
                     game.ships.add(try_ship)
                     cluster.add(try_ship)
                     shipsMade += 1
-                    self.units -= 1
+                    self.units.count -= 1
                     if shipsMade == num_ships: break
                 currAngle += 2 * angle_step
 
@@ -206,15 +206,6 @@ class Cluster(pg.sprite.RenderUpdates):
         self.name = Cluster.INDEX
         Cluster.INDEX += 1
 
-    def serverUpdate(self, game, teamNo, dest, ships):
-        if teamNo != self.teamNo:
-            self.teamNo = teamNo
-        if dest != self.dest:
-            self.dest = dest
-        for unit in self:
-            unit.kill()
-        for s in ships:
-            Ship(teamNo, *s, self, game.ships)
 
     def move(self, ships, planets):
 
@@ -224,8 +215,8 @@ class Cluster(pg.sprite.RenderUpdates):
                     unit.try_move(dist, turn)
                     collidePlanet = pg.sprite.spritecollideany(unit, planets,
                                                         pg.sprite.collide_circle)
-                    if collidePlanet is unit.destPlanet:
-                        unit.destPlanet.arrival(self.team)
+                    if collidePlanet is unit.destination_planet:
+                        unit.destination_planet.arrival(self.teamNo)
                         unit.kill()
                         return
                     else:
@@ -248,8 +239,7 @@ class Cluster(pg.sprite.RenderUpdates):
             # sorts the possible turns so that the ship tries to go forward
             # first
             tryTurns = sorted(turnList, key=lambda x:
-                              abs(x + normalise(unit.offsetAngle)))
-
+                              abs(x + normalise(unit.offset_angle)))
             moveUnit(unit, tryTurns)
 
     def changeDest(self, dest):
@@ -261,12 +251,12 @@ class Cluster(pg.sprite.RenderUpdates):
         ships = []
         for ship in self:
             ships.append((ship.loc, ship.angle))
-        return self.team, self.dest.pName, ships
+        return self.teamNo, self.dest.pName, ships
 
     def checkArrival(self):
         for ship in self:
             if ship.arrive():
-                ship.destPlanet.arrival(self.team)
+                ship.destination_planet.arrival(self.teamNo)
                 ship.kill()
 
 
@@ -295,6 +285,7 @@ class Ship(pg.sprite.DirtySprite):
     def __init__(self, pt, start_planet, destination_planet, *groups):
         super().__init__(*groups)
 
+        self.color = start_planet.owner.color
         self.team = start_planet.owner
         self.x, self.y = pt
         self.start_planet = start_planet
@@ -303,6 +294,10 @@ class Ship(pg.sprite.DirtySprite):
         # create image
         self.h = self.w = Ship.RADIUS * 2
         self.angle = self.angle_to_destination
+        self.imageO = pg.Surface((self.w, self.h), flags=pg.SRCALPHA)
+        self.__createImage__()
+        self.image = self.imageO
+        self.__rotateImage__(self.angle)
 
         # for collision detection purposes
         self.oldX, self.oldY = 0, 0
@@ -358,7 +353,7 @@ class Ship(pg.sprite.DirtySprite):
 
     @property
     def angle_to_destination(self):
-        return get_angle(*self.loc, *self.destPlanet.loc)
+        return get_angle(*self.loc, *self.destination_planet.loc)
 
     @property
     def offset_angle(self):

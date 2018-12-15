@@ -24,6 +24,8 @@ class GameView(Menu):
         self.pressed = None
         self.exit_menu_shown = False
         self.selected_planet = None
+        self.clusterNames = {}
+        self.ships = sp.RenderUpdates()
 
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
         self.add_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
@@ -38,6 +40,8 @@ class GameView(Menu):
         for planet in self.planets:
             planet.units.update()
             rects += planet.draw(screen)
+        self.ships.clear(screen, self.bg)
+        rects += self.ships.draw(screen)
         return rects
 
     def rect_exit_menu(self, screen):
@@ -70,7 +74,18 @@ class GameView(Menu):
                 but.un_mouse_over()
 
     def timer_fired(self):
-        pass
+        # remove empty clusters
+        emptyClusters = []
+        for i in self.clusterNames:
+            if not self.clusterNames[i]:
+                emptyClusters.append(i)
+        for i in emptyClusters:
+            self.clusterNames.pop(i)
+
+        # move ships
+        for i in self.clusterNames:
+            self.clusterNames[i].move(self.ships, self.planets)
+
 
     def mouse_down(self, event):
         if self.exit_menu_shown:
@@ -89,7 +104,7 @@ class GameView(Menu):
                     self.selected_planet.selected = False
                     self.selected_planet = None
                 elif self.selected_planet is not None:
-                    # send_ships
+                    self.selected_planet.sendShips(self, self.active_planet)
                     self.selected_planet.selected = False
                     self.selected_planet = None
 
@@ -107,12 +122,13 @@ class GameView(Menu):
 
     def redraw(self, screen):
         rects = []
-        rects += self.draw(screen)
-        rects.append(self.draw_info(screen))
         rects += self.rect_exit_menu(screen)
         if not self.exit_menu_shown:
             self.buttons.clear(self.screen, self.bg)
             self.statusBoxes.clear(self.screen, self.bg)
+        rects += self.draw(screen)
+        rects.append(self.draw_info(screen))
+        rects += self.ships.draw(screen)
         return rects
 
     def generate_mocked_planets(self, player, enemies):
