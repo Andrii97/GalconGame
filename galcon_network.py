@@ -1,6 +1,3 @@
-import pygame
-
-
 class GalconNetwork():
     def __init__(self):
         pass
@@ -19,10 +16,3 @@ class Command():
     def __init__(self, type, arguments):
         self.type = type
         self.arguments = arguments
-
-
-class Planet():
-    def __init__(self, id, size, position):
-        self.id = id
-        self.size = size
-        self.position = position

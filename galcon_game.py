@@ -1,18 +1,19 @@
-from menu import Menu, StartMPMenu, JoinMPMenu, SettingsMenu, PreGameMenu
-from galcon_planets import GameView
 import pygame as pg
 import pygame.display as disp
 import pygame.event as pgevent
-import pygame.time as pgtime
 import pygame.freetype as pgfont
+import pygame.time as pgtime
 
+from galcon_view import GameView
+from menu import Menu, StartMPMenu, JoinMPMenu, SettingsMenu, PreGameMenu
+from models import Color
 
 
 class GalconGame:
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        self.user = User('User', (255, 0, 0))
+        self.user = User('User', Color.RED)
         pg.mixer.init()
         self.clock = pgtime.Clock()
         self.screen = disp.set_mode((w, h))
@@ -59,7 +60,9 @@ class GalconGame:
         self.mainMenu.star_bg()
         but_w = 300
 
-        self.mainMenu.add_label("GALCON", self.w // 2, 100, font=pgfont.SysFont('Tahoma', 32))
+        self.mainMenu.add_label("WELCOME TO GALCON", self.w // 2, 140, font=pgfont.SysFont('Tahoma', 28))
+        self.mainMenu.add_status_box('name', self.user.name, self.w // 2, 180, font=pgfont.SysFont('Tahoma', 32),
+                                     text_color=self.user.color)
         self.mainMenu.add_button("START MULTIPLAYER", pg.Rect((self.w - but_w) // 2, 250, but_w, 50), 
                                  self.show_start_mp_menu)
         self.mainMenu.add_button("JOIN MULTIPLAYER", pg.Rect((self.w - but_w) // 2, 310, but_w, 50), 
@@ -72,6 +75,7 @@ class GalconGame:
         self.mainMenu.pressed = None
         self.mode = self.mainMenu
         self.screen.blit(self.mode.bg, (0, 0))
+        self.mode.update_status_box('name', self.user.name, self.user.color)
         disp.update()
 
         if not pg.mixer.music.get_busy():
@@ -87,16 +91,18 @@ class GalconGame:
         disp.update()
 
     def show_start_mp_menu(self):
-        self.startMPMenu = StartMPMenu(self.w, self.h, self.show_game_view, self.show_main_menu)
+        self.startMPMenu = StartMPMenu(self.w, self.h, self.show_game_view, self.show_main_menu, self.user)
         self.startMPMenu.pressed = None
         self.mode = self.startMPMenu
+        self.startMPMenu.update_status_box('name', self.user.name, self.user.color)
         self.screen.blit(self.mode.bg, (0, 0))
         disp.update()
 
     def show_join_mp_menu(self):
-        self.joinMPMenu = JoinMPMenu(self.w, self.h, self.show_main_menu)
+        self.joinMPMenu = JoinMPMenu(self.w, self.h, self.show_main_menu, self.user)
         self.joinMPMenu.pressed = None
         self.mode = self.joinMPMenu
+        self.joinMPMenu.update_status_box('name', self.user.name, self.user.color)
         self.screen.blit(self.mode.bg, (0, 0))
         disp.update()
 
@@ -107,15 +113,15 @@ class GalconGame:
         disp.update()
     
     def show_game_view(self):
-        self.game_view = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
-        self.game_view.accept_planets(
-            self.game_view.generate_mocked_planets(
-                self.user, [User("Bot1", (0, 0, 255)), User("Bot2", (0, 255, 0))]
+        self.gameView = GameView(self.w, self.h, self.screen, self.user, self.show_main_menu)
+        self.gameView.accept_planets(
+            self.gameView.generate_mocked_planets(
+                self.user, [User("Bot1", Color.BLUE), User("Bot2", Color.GREEN)]
             )
         )
-        self.mode = self.game_view
+        self.mode = self.gameView
         self.screen.blit(self.mode.bg, (0, 0))
-        self.game_view.draw(self.screen, self.user)
+        self.gameView.draw(self.screen)
         disp.update()
 
     def play_music(self):
