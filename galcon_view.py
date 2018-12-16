@@ -33,10 +33,13 @@ class GameView(Menu):
         self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
         self.gameOver = False
 
+        self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
+        self.gameOver = False
+
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
         self.add_menu_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
         self.add_menu_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
-        self.power_button = self.add_button('{0:.0f}%'.format(self.power * 100), pg.Rect(w - 60, h - 60, 50, 50), self.hide_exit_menu)
+        self.power_button = self.add_button('{0:.0f}%'.format(self.power * 100), pg.Rect(w - 60, h - 100, 50, 50), self.hide_exit_menu)
 
     def accept_planets(self, planets):
         for planet in planets:
@@ -113,7 +116,7 @@ class GameView(Menu):
                 cnt += 1
         if cnt == len(self.planets):
             self.gameOver = True
-            
+
     def mouse_down(self, event):
         if self.gameOver and self.gameOverMsg.rect.collidepoint(*event.pos):
             self.mouseDownIn = self.gameOverMsg
