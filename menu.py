@@ -57,20 +57,9 @@ class Menu:
         return tf.smoothscale(sfa.make_surface(a), (r, r))
 
     def add_button(self, *args):
-        self.buttons.add(Button(*args))
-
-    def add_color_button(self, *args):
-        but = ColorButton(*args)
-        if self.user.color == but.color_p:
-            self.pressed = but
-            but.press()
-
-        self.buttons.add(but)
-
-    def get_color_button(self):
-        for but in self.buttons:
-            if isinstance(but, ColorButton) and but.pressed:
-                return but
+        button = Button(*args)
+        self.buttons.add(button)
+        return button
 
     def add_text_box(self, name, *args, **kwargs):
         new_box = TextBox(*args, **kwargs)
@@ -231,6 +220,16 @@ class Button(sp.DirtySprite):
         self.image = self.imageBase
         if self.pressed: 
             self.fn(*self.args)
+
+    def update(self, text=None):
+        if text is not None:
+            self.text = text
+        if not (text is None):
+            self.imageBase = pg.Surface((self.rect.width, self.rect.height))
+            self.imageMouseOver = pg.Surface((self.rect.width, self.rect.height))
+            self.imageMousePress = pg.Surface((self.rect.width, self.rect.height))
+            self.__createImages__()
+
 
 
 class ColorButton(sp.DirtySprite):
@@ -473,6 +472,19 @@ class SettingsMenu(Menu):
         self.add_status_box("status", "", w // 2, 460)
         self.add_button("SAVE", pg.Rect((w - but_w) // 2, 480, but_w, 50), self.validate)
         self.add_button("BACK", pg.Rect((w - but_w) // 2, 540, but_w, 50), main_menu)
+
+    def add_color_button(self, *args):
+        but = ColorButton(*args)
+        if self.user.color == but.color_p:
+            self.pressed = but
+            but.press()
+
+        self.buttons.add(but)
+
+    def get_color_button(self):
+        for but in self.buttons:
+            if isinstance(but, ColorButton) and but.pressed:
+                return but
 
     def validate(self):
         # Check values
