@@ -126,12 +126,12 @@ class Planet(pg.sprite.Sprite):
             self.units += 1
             self.spawnTimer = Planet.SPAWN_TIME
 
-    def send_ships(self, game, destination_planet):
+    def send_ships(self, game, destination_planet, power):
 
         # finds available locations around a planet to spawn the
         # ships in a circle around a planet
         BUFFER_SPACE = 1
-        num_ships = self.units.count // 2
+        num_ships = int(self.units.count * power)
 
         # create a new group of ships
         cluster = Cluster(destination_planet, self.owner)

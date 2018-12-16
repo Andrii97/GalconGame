@@ -4,7 +4,7 @@ import pygame as pg
 import pygame.gfxdraw as gfx
 import pygame.sprite as sp
 
-from menu import Menu
+from menu import Menu, Button
 from models import Planet, Color
 
 
@@ -16,6 +16,7 @@ class GameView(Menu):
         self.user = user
         self.main_menu = main_menu
         self.buttons = sp.RenderUpdates()
+        self.menu_buttons = sp.RenderUpdates()
         self.statusBoxDict = dict()
         self.statusBoxes = sp.RenderUpdates()
         self.bg = pg.Surface((w, h))
@@ -27,13 +28,15 @@ class GameView(Menu):
         self.selected_planet = None
         self.clusterNames = {}
         self.ships = sp.RenderUpdates()
+        self.power = 0.5
 
         self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
         self.gameOver = False
 
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
-        self.add_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
-        self.add_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
+        self.add_menu_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
+        self.add_menu_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
+        self.power_button = self.add_button('{0:.0f}%'.format(self.power * 100), pg.Rect(w - 60, h - 60, 50, 50), self.hide_exit_menu)
 
     def accept_planets(self, planets):
         for planet in planets:
@@ -49,7 +52,10 @@ class GameView(Menu):
         return rects
 
     def rect_exit_menu(self, screen):
-        return self.buttons.draw(screen) + self.statusBoxes.draw(screen)
+        return self.menu_buttons.draw(screen) + self.statusBoxes.draw(screen)
+
+    def add_menu_button(self, *args):
+        self.menu_buttons.add(Button(*args))
 
     def hide_exit_menu(self):
         self.exit_menu_shown = False
@@ -76,6 +82,12 @@ class GameView(Menu):
                 self.active_planet = planet
                 break
 
+        for but in self.menu_buttons:
+            if but.contains_pt(event.pos):
+                but.mouse_over()
+            else:
+                but.un_mouse_over()
+
         for but in self.buttons:
             if but.contains_pt(event.pos):
                 but.mouse_over()
@@ -101,19 +113,22 @@ class GameView(Menu):
                 cnt += 1
         if cnt == len(self.planets):
             self.gameOver = True
-
-
-
+            
     def mouse_down(self, event):
         if self.gameOver and self.gameOverMsg.rect.collidepoint(*event.pos):
             self.mouseDownIn = self.gameOverMsg
             self.gameOverMsg.mouseDown(event)
 
         if self.exit_menu_shown:
-            for but in self.buttons:
+            for but in self.menu_buttons:
                 if but.contains_pt(event.pos):
                     self.pressed = but
                     but.press()
+        for but in self.buttons:
+            if but.contains_pt(event.pos):
+                self.pressed = but
+                but.press()
+                self.change_power()
 
     def mouse_up(self, event):
         if event.button == 1:  # left click
@@ -125,7 +140,7 @@ class GameView(Menu):
                     self.selected_planet.selected = False
                     self.selected_planet = None
                 elif self.selected_planet is not None:
-                    self.selected_planet.send_ships(self, self.active_planet)
+                    self.selected_planet.send_ships(self, self.active_planet, self.power)
                     self.selected_planet.selected = False
                     self.selected_planet = None
 
@@ -141,12 +156,20 @@ class GameView(Menu):
         if event.key == pg.K_ESCAPE:
             self.exit_menu_shown = True
 
+    def change_power(self):
+        if self.power < 1:
+            self.power += 0.25
+        else:
+            self.power = 0.25
+        self.power_button.update('{0:.0f}%'.format(self.power * 100))
+
     def redraw(self, screen):
         rects = []
         rects += self.rect_exit_menu(screen)
         if not self.exit_menu_shown:
-            self.buttons.clear(self.screen, self.bg)
+            self.menu_buttons.clear(self.screen, self.bg)
             self.statusBoxes.clear(self.screen, self.bg)
+        rects += self.buttons.draw(self.screen)
         rects += self.draw(screen)
         rects.append(self.draw_info(screen))
         rects += self.ships.draw(screen)
