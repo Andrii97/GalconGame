@@ -231,7 +231,6 @@ class Button(sp.DirtySprite):
             self.__createImages__()
 
 
-
 class ColorButton(sp.DirtySprite):
 
     pgfont.init()

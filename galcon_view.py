@@ -30,16 +30,14 @@ class GameView(Menu):
         self.ships = sp.RenderUpdates()
         self.power = 0.5
 
-        self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
-        self.gameOver = False
-
-        self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
+        self.gameOverMsg = GameOverMsg(300, 160, (w - 300) // 2, (h - 150) // 2, self.main_menu)
         self.gameOver = False
 
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
         self.add_menu_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
         self.add_menu_button("NO", pg.Rect((w - 300) // 2, (h - 50) // 2 + 60, 300, 50), self.hide_exit_menu)
-        self.power_button = self.add_button('{0:.0f}%'.format(self.power * 100), pg.Rect(w - 60, h - 100, 50, 50), self.hide_exit_menu)
+        self.power_button = self.add_button('{0:.0f}%'.format(self.power * 100), pg.Rect(w - 60, h - 100, 50, 50),
+                                            self.hide_exit_menu)
 
     def accept_planets(self, planets):
         for planet in planets:
@@ -62,6 +60,7 @@ class GameView(Menu):
 
     def hide_exit_menu(self):
         self.exit_menu_shown = False
+        self.redraw(self.screen)
 
     def draw_info(self, screen):
         rect = pg.Rect(0, self.h - 100, 300, 100)
@@ -72,13 +71,12 @@ class GameView(Menu):
             screen.blit(text_image, (10, self.h - 80))
         return rects
 
-
     def mouse_move(self, event):
         x, y = event.pos
         self.active_planet = None
 
         if self.gameOver:
-            self.gameOverMsg.mouseMove(event)
+            self.gameOverMsg.mouse_move(event)
 
         for planet in self.planets:
             if ((x - planet.pos_x) ** 2 + (y - planet.pos_y) ** 2) < planet.radius ** 2:
@@ -120,13 +118,14 @@ class GameView(Menu):
     def mouse_down(self, event):
         if self.gameOver and self.gameOverMsg.rect.collidepoint(*event.pos):
             self.mouseDownIn = self.gameOverMsg
-            self.gameOverMsg.mouseDown(event)
+            self.gameOverMsg.mouse_down(event)
 
         if self.exit_menu_shown:
             for but in self.menu_buttons:
                 if but.contains_pt(event.pos):
                     self.pressed = but
                     but.press()
+
         for but in self.buttons:
             if but.contains_pt(event.pos):
                 self.pressed = but
@@ -147,6 +146,9 @@ class GameView(Menu):
                     self.selected_planet.selected = False
                     self.selected_planet = None
 
+        if self.gameOver and self.gameOverMsg.rect.collidepoint(*event.pos):
+            self.gameOverMsg.mouse_up(event)
+
         if self.pressed:
             if self.pressed.contains_pt(event.pos):
                 self.pressed.release()
@@ -156,7 +158,7 @@ class GameView(Menu):
                 self.pressed = None
 
     def key_pressed(self, event):
-        if event.key == pg.K_ESCAPE:
+        if event.key == pg.K_ESCAPE and not self.gameOver:
             self.exit_menu_shown = True
 
     def change_power(self):
@@ -200,7 +202,7 @@ class GameView(Menu):
         self.gameOverMsg.show((self.w - 300) // 2, (self.h - 150) // 2,
                               self.winState)
         self.gameOver = True
-
+        self.hide_exit_menu()
 
 
 class GameOverMsg(Menu):
@@ -211,8 +213,8 @@ class GameOverMsg(Menu):
         super().__init__(w, h)
         gfx.rectangle(self.bg, self.bg.get_rect(), GameOverMsg.BOXCOLOR)
         self.add_status_box('msg', "You win!!!", w//2, h//3)
-        butW = (w * 2) // 3
-        self.add_button("MAIN MENU", pg.Rect((w - butW)//2, h // 2, butW, h//3), fn)
+        but_width = (w * 2) // 3
+        self.add_button("MAIN MENU", pg.Rect((w - but_width)//2, h // 2, but_width, h//3), fn)
         self.w, self.h = w, h
         self.x, self.y = x, y
 
@@ -229,17 +231,17 @@ class GameOverMsg(Menu):
     def loc(self):
         return self.x, self.y
 
-    def mouseMove(self, event):
+    def mouse_move(self, event):
         x, y = event.pos
         event.pos = x - self.x, y - self.y
         super().mouse_move(event)
 
-    def mouseDown(self, event):
+    def mouse_down(self, event):
         x, y = event.pos
         event.pos = x - self.x, y - self.y
         super().mouse_down(event)
 
-    def mouseUp(self, event):
+    def mouse_up(self, event):
         x, y = event.pos
         event.pos = x - self.x, y - self.y
         super().mouse_up(event)
