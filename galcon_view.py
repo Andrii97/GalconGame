@@ -170,14 +170,17 @@ class GameView(Menu):
 
     def redraw(self, screen):
         rects = []
-        rects += self.rect_exit_menu(screen)
         if not self.exit_menu_shown:
+            rects += self.rect_exit_menu(screen)
             self.menu_buttons.clear(self.screen, self.bg)
             self.statusBoxes.clear(self.screen, self.bg)
         rects += self.buttons.draw(self.screen)
         rects += self.draw(screen)
         rects.append(self.draw_info(screen))
         rects += self.ships.draw(screen)
+
+        if self.exit_menu_shown:
+            rects += self.rect_exit_menu(screen)
 
         if not self.gameOver:
             return rects
@@ -206,15 +209,14 @@ class GameView(Menu):
 
 
 class GameOverMsg(Menu):
-
     BOXCOLOR = (0, 255, 0)
 
     def __init__(self, w, h, x, y, fn):
         super().__init__(w, h)
         gfx.rectangle(self.bg, self.bg.get_rect(), GameOverMsg.BOXCOLOR)
-        self.add_status_box('msg', "You win!!!", w//2, h//3)
+        self.add_status_box('msg', "You win!!!", w // 2, h // 3)
         but_width = (w * 2) // 3
-        self.add_button("MAIN MENU", pg.Rect((w - but_width)//2, h // 2, but_width, h//3), fn)
+        self.add_button("MAIN MENU", pg.Rect((w - but_width) // 2, h // 2, but_width, h // 3), fn)
         self.w, self.h = w, h
         self.x, self.y = x, y
 
