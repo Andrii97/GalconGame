@@ -74,7 +74,7 @@ class TestPlanet(unittest.TestCase):
         game = GameView(20, 20, None, User('user', Color.RED), None)
         num_ships = planet.units.count // 2
         units_start = planet.units.count
-        planet.send_ships(game, destination_planet)
+        planet.send_ships(game, destination_planet, 1 / 2)
         self.assertEqual(planet.units.count, units_start - num_ships)
 
 
