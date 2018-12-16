@@ -25,6 +25,7 @@ class GameView(Menu):
         self.active_planet = None
         self.pressed = None
         self.exit_menu_shown = False
+        self.exit_menu_should_be_redrawn = False
         self.selected_planet = None
         self.clusterNames = {}
         self.ships = sp.RenderUpdates()
@@ -60,7 +61,8 @@ class GameView(Menu):
 
     def hide_exit_menu(self):
         self.exit_menu_shown = False
-        self.redraw(self.screen)
+        self.exit_menu_should_be_redrawn = True
+        # self.redraw(self.screen)
 
     def draw_info(self, screen):
         rect = pg.Rect(0, self.h - 100, 300, 100)
@@ -170,8 +172,9 @@ class GameView(Menu):
 
     def redraw(self, screen):
         rects = []
-        if not self.exit_menu_shown:
+        if not self.exit_menu_shown and self.exit_menu_should_be_redrawn:
             rects += self.rect_exit_menu(screen)
+            self.exit_menu_should_be_redrawn = False
             self.menu_buttons.clear(self.screen, self.bg)
             self.statusBoxes.clear(self.screen, self.bg)
         rects += self.buttons.draw(self.screen)
