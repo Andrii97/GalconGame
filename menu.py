@@ -452,6 +452,11 @@ class MultilineLabel(sp.Sprite):
 
 
 class SettingsMenu(Menu):
+    LESS_THAN_MIN_CHAR_ERROR_MSG = "Username must be at least 4 characters"
+    MORE_THAN_MAX_CHAR_ERROR_MSG = "Username can't be loner than 16 characters"
+    BLANK_ERROR_MSG = "Username can't be blank"
+    START_WITH_DIGIT_ERROR_MSG = "Username can't start with a digit"
+    FORBIDDEN_SYMBOLS_ERROR_MSG = "Username contains forbidden symbols"
 
     def __init__(self, w, h, user, main_menu):
         super().__init__(w, h)
@@ -483,16 +488,16 @@ class SettingsMenu(Menu):
             self.user.name = new_name
             self.user.color = new_color
             self.mainMenu()
-        elif len(new_name) < 4:
-            self.get_status_box('status').update_text("Username must be at least 4 characters", self.ERROR_COLOR)
-        elif len(new_name) > 16:
-            self.get_status_box('status').update_text("Username can't be loner than 16 characters", self.ERROR_COLOR)
         elif new_name == '':
-            self.get_status_box('status').update_text("Username can't be blank", self.ERROR_COLOR)
+            self.get_status_box('status').update_text(self.BLANK_ERROR_MSG, self.ERROR_COLOR)
+        elif len(new_name) < 4:
+            self.get_status_box('status').update_text(self.LESS_THAN_MIN_CHAR_ERROR_MSG, self.ERROR_COLOR)
+        elif len(new_name) > 16:
+            self.get_status_box('status').update_text(self.MORE_THAN_MAX_CHAR_ERROR_MSG, self.ERROR_COLOR)
         elif new_name[0].isdigit():
-            self.get_status_box('status').update_text("Username can't start with a digit", self.ERROR_COLOR)
+            self.get_status_box('status').update_text(self.START_WITH_DIGIT_ERROR_MSG, self.ERROR_COLOR)
         else:
-            self.get_status_box('status').update_text("Username contains forbidden symbols", self.ERROR_COLOR)
+            self.get_status_box('status').update_text(self.FORBIDDEN_SYMBOLS_ERROR_MSG, self.ERROR_COLOR)
 
 
 class StartMPMenu(Menu):
