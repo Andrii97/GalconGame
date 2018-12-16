@@ -205,6 +205,7 @@ class TestUserSettings(unittest.TestCase):
         settings_menu.get_color_button().color_p = Color.PURPLE
         settings_menu.validate()
         self.assertEqual(settings_menu.user.name, settings_menu.get_text_box('Name'))
+        self.assertEqual(settings_menu.user.color, Color.PURPLE)
 
 
 if __name__ == '__main__':
