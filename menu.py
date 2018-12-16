@@ -281,11 +281,11 @@ class TextBox(sp.DirtySprite):
     pgfont.init()
     FONT = pgfont.SysFont('Tahoma', 20)
 
-    def __init__(self, rect, enter_fn=lambda x: None, default_text=""):
+    def __init__(self, rect, enter_fn=lambda x: x, default_text=""):
         super().__init__()
         self.text = default_text
         self.rect = rect
-        self.enterFn = enter_fn
+        self.enter_fn = enter_fn
         self.imageBase = pg.Surface((rect.width, rect.height))
         self.imageMouseOver = pg.Surface((rect.width, rect.height))
         self.imageMousePress = pg.Surface((rect.width, rect.height))
