@@ -1,6 +1,7 @@
 from random import randint
 
 import pygame as pg
+import pygame.gfxdraw as gfx
 import pygame.sprite as sp
 
 from menu import Menu
@@ -26,6 +27,9 @@ class GameView(Menu):
         self.selected_planet = None
         self.clusterNames = {}
         self.ships = sp.RenderUpdates()
+
+        self.gameOverMsg = GameOverMsg(300, 150, 360, 380, self.main_menu)
+        self.gameOver = False
 
         self.add_status_box("status", "Do you want to exit to main menu?", w // 2, h // 2 - 50)
         self.add_button("YES", pg.Rect((w - 300) // 2, (h - 50) // 2, 300, 50), self.main_menu)
@@ -59,9 +63,14 @@ class GameView(Menu):
             screen.blit(text_image, (10, self.h - 80))
         return rects
 
+
     def mouse_move(self, event):
         x, y = event.pos
         self.active_planet = None
+
+        if self.gameOver:
+            self.gameOverMsg.mouseMove(event)
+
         for planet in self.planets:
             if ((x - planet.pos_x) ** 2 + (y - planet.pos_y) ** 2) < planet.radius ** 2:
                 self.active_planet = planet
@@ -86,8 +95,20 @@ class GameView(Menu):
         for i in self.clusterNames:
             self.clusterNames[i].move(self.ships, self.planets)
 
+        cnt = 0
+        for planet in self.planets:
+            if planet.owner == self.user:
+                cnt += 1
+        if cnt == len(self.planets):
+            self.gameOver = True
+
+
 
     def mouse_down(self, event):
+        if self.gameOver and self.gameOverMsg.rect.collidepoint(*event.pos):
+            self.mouseDownIn = self.gameOverMsg
+            self.gameOverMsg.mouseDown(event)
+
         if self.exit_menu_shown:
             for but in self.buttons:
                 if but.contains_pt(event.pos):
@@ -129,7 +150,13 @@ class GameView(Menu):
         rects += self.draw(screen)
         rects.append(self.draw_info(screen))
         rects += self.ships.draw(screen)
-        return rects
+
+        if not self.gameOver:
+            return rects
+        else:
+            self.gameOverMsg.redraw(self.gameOverMsg.bg)
+            screen.blit(self.gameOverMsg.bg, self.gameOverMsg.loc)
+            return rects + [self.gameOverMsg.rect]
 
     def generate_mocked_planets(self, player, enemies):
         planets = []
@@ -142,3 +169,51 @@ class GameView(Menu):
         planets.append(Planet(3, 850, 600, randint(30, 100), enemies[1], self))
 
         return planets
+
+    def endGame(self):
+        self.gameOverMsg.show((self.w - 300) // 2, (self.h - 150) // 2,
+                              self.winState)
+        self.gameOver = True
+
+
+
+class GameOverMsg(Menu):
+
+    BOXCOLOR = (0, 255, 0)
+
+    def __init__(self, w, h, x, y, fn):
+        super().__init__(w, h)
+        gfx.rectangle(self.bg, self.bg.get_rect(), GameOverMsg.BOXCOLOR)
+        self.add_status_box('msg', "You win!!!", w//2, h//3)
+        butW = (w * 2) // 3
+        self.add_button("MAIN MENU", pg.Rect((w - butW)//2, h // 2, butW, h//3), fn)
+        self.w, self.h = w, h
+        self.x, self.y = x, y
+
+    def show(self, x, y, win):
+        state = 'win' if win == 'W' else 'lose'
+        self.update_status_box('msg', text="Game over. You %s." % state)
+        self.x, self.y = x, y
+
+    @property
+    def rect(self):
+        return pg.Rect(self.x, self.y, self.w, self.h)
+
+    @property
+    def loc(self):
+        return self.x, self.y
+
+    def mouseMove(self, event):
+        x, y = event.pos
+        event.pos = x - self.x, y - self.y
+        super().mouse_move(event)
+
+    def mouseDown(self, event):
+        x, y = event.pos
+        event.pos = x - self.x, y - self.y
+        super().mouse_down(event)
+
+    def mouseUp(self, event):
+        x, y = event.pos
+        event.pos = x - self.x, y - self.y
+        super().mouse_up(event)
